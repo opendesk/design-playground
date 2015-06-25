@@ -12,9 +12,9 @@ OpenDesk Design Playground
 <span style=display:none; >[View as web page]( http://opendesk.github.io/design-playground "View file as a web page." ) </span>  
 
 
-[Half Sheet Table Demo]( http://opendesk.github.io/design-playground/opendesk-half-sheet-table/latest/
+[Half Sheet Table Demo]( http://opendesk.github.io/design-playground/opendesk-half-sheet-table/latest/ )
 
-[Rotational Stool Demo]( http://opendesk.github.io/design-playground/opendesk-rotational-stool/latest/
+[Rotational Stool Demo]( http://opendesk.github.io/design-playground/opendesk-rotational-stool/latest/ )
 
 
 <input type=button value='View file as source code on GitHub' onclick=window.location.href='https://github.com/opendesk/design-playground/tree/gh-pages'; />
