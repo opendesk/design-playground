@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang=en >
+<head>
+<title>build-open-desk-rotational-stool-r1.html</title>
+<meta charset=utf-8 />
+<meta name=viewport content='width=device-width,user-scalable=no,minimum-scale=1.0,maximum-scale=1.0' />
+</head>
+<body>
+<script src=http://mrdoob.github.io/three.js/build/three.min.js ></script>
+<script src=http://mrdoob.github.io/three.js/examples/js/controls/OrbitControls.js ></script>
+<script src=http://mrdoob.github.io/three.js/examples/js/libs/stats.min.js ></script>
+<script>
+
+
+	var width = 240;
+	var thickness = 20;
+	var tab = 150;
+	var height = 360
+
+	var cutDepth = 6;
+	var cutWidth = 10;
+
+	var face;
+	var morticeWidth = 26;
+	var upstand = 100;
+	var tenon = 12;
+
+	var pi = Math.PI;
+
+	var css, info, stats, renderer, scene, camera, controls;
+	var geometry, material, mesh;
+
+	var stool1;
+	var stool2;
+	var edges;
+	var originMarker;
+
+	init();
+	animate();
+
+	function init() {
+
+		var css = document.head.appendChild( document.createElement('style') );
+		css.innerHTML ='body { font: 600 12pt monospace; margin: 0; overflow: hidden; }' +
+			'#i {text-decoration: none; }' +
+		'';
+
+		info = document.body.appendChild( document.createElement( 'div' ) );
+		info.style.cssText = 'margin: 0 20px; max-width: 250px; position: absolute; ';
+		info.innerHTML = '<h2><a href="" >' + document.title + '</a> - ' +
+			'<a id=i href=http://wikihouse.github.io/viewer-experiments/display-wikihouse-stepup1/ >&#x24D8;</a>' +
+			'</h2>' +
+			'<p>Building the Step Up using parameterized functions for each component</p>' +
+			'<p>2015-05-04 ~ 2015-05-13 ~ WIP with many issues</p>' +
+			'<p>Thickness <input type=range id=inpThickness min=5 max=40 step=1 value=' + thickness + ' onclick=buildStool1(); /></p>' +
+			'<p>Width <input type=range id=inpWidth min=200 max=400 step=1 value=' + width + ' onclick=buildStool1(); /></p>' +
+			'<p>tab <input type=range id=inpTab min=-50 max=300 step=1 value=' + tab + ' onclick=buildStool1(); /></p>' +
+			'<p>Height <input type=range id=inpHeight min=200 max=500 step=1 value=' + height + ' onclick=buildStool1(); /></p>' +
+			'<div id=msg1 ></div>' +
+		'';
+
+		stats = new Stats();
+		stats.domElement.style.cssText = 'position: absolute; right: 0; top: 0; z-index: 100; ';
+		document.body.appendChild( stats.domElement );
+
+		renderer = new THREE.WebGLRenderer( { alpha: 1, antialias: true, clearColor: 0xffffff }  );
+		renderer.setSize( window.innerWidth, window.innerHeight );
+		document.body.appendChild( renderer.domElement );
+
+		camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
+		camera.position.set( 1500, 900, 1500 );
+
+		controls = new THREE.OrbitControls( camera, renderer.domElement );
+
+		scene = new THREE.Scene();
+
+
+// ground box
+		geometry = new THREE.BoxGeometry( 500, 20, 500 );
+		material = new THREE.MeshNormalMaterial();
+		mesh = new THREE.Mesh( geometry, material );
+		mesh.position.set( 0, -300, 0 );
+		scene.add( mesh );
+
+		mesh = new THREE.GridHelper( 250, 10 );
+		mesh.position.set( 0, -289, 0 );
+		scene.add( mesh );
+
+// axes
+		var axisHelper = new THREE.AxisHelper( 1000 );
+		scene.add( axisHelper );
+
+
+// Origin Marker
+
+		geometry = new THREE.SphereGeometry( 5 );
+		material = new THREE.MeshNormalMaterial();
+		originMarker = new THREE.Mesh( geometry, material );
+//		scene.add( mesh );
+
+		buildStool1();
+
+	}
+
+	function buildStool1() {
+
+		scene.remove( stool1 );
+		scene.remove( edges );
+
+		width = parseFloat( inpWidth.value );
+		thickness = parseFloat( inpThickness.value );
+		tab = parseFloat( inpTab.value );
+		height = parseFloat( inpHeight.value );
+
+		stool1 = new THREE.Object3D();
+		edges = new THREE.Object3D();
+
+		seat1 = buildSeat1();
+//		seat1.position.set( -350, 200, -500 );
+		seat1.position.set( 20, 330, 0 );
+		seat1.rotation.x = pi / 2;
+
+		stool1.add( seat1 );
+
+		leg1 = buildLeg();
+		stool1.add( leg1 );
+
+		leg2 = buildLeg();
+		stool1.add( leg2 );
+
+		leg2.rotation.y = pi / 2;
+		leg2.position.set( 0, 0, 234 );
+
+		scene.add( stool1 );
+		scene.add( edges );
+
+/*
+		face = thickness + 2 * cutDepth;
+
+		widthDelta = parseFloat( inpWidthDelta.value );
+		widthDeltaHalf = 0.5 * widthDelta;
+		width = 550 + widthDelta;
+
+		depthDelta = parseFloat( inpDepthDelta.value );
+		depthDeltaHalf = 0.5 * depthDelta;
+		depth = 550 + depthDelta;
+
+		heightDelta = parseFloat( inpHeightDelta.value );
+		heightDeltaHalf = 0.5 * heightDelta;
+		height = 520 + heightDelta;
+
+		stepUp = new THREE.Object3D();
+		edges = new THREE.Object3D();
+
+// Step Up Cutting Template
+
+		back1 = buildBack();
+		back1.position.set( -350, 200, -500 );
+		stepUp.add( back1 );
+
+		back2 = buildBack();
+		back2.rotation.z = Math.PI;
+		back2.position.set( 400 + widthDelta, 400, -500 );
+		stepUp.add( back2 );
+
+		stepTop = buildStepTop();
+		stepTop.position.set( 250 + widthDelta, 460, -500 );
+		stepUp.add( stepTop );
+
+		stepBottom = buildStepBottom();
+		stepBottom.rotation.z = -Math.PI / 2;
+		stepBottom.position.set( 430 + widthDelta , 430, -500 );
+		stepUp.add( stepBottom );
+
+		for ( var y = 0; y < 3; y++ ) {
+			for ( var x = 0; x < 2; x++ ) {
+
+				wedge = buildWedge();
+				wedge.position.set( 430 + 80 * x, -320 + -70 * y, -500 );
+				stepUp.add( wedge );
+
+			}
+		}
+
+		for ( var y = 0; y < 4; y++ ) {
+
+			peg = buildPeg();
+			peg.position.set( -350, 100 + -70 * y, -500 );
+			stepUp.add( peg );
+
+		}
+
+		side1 = buildSide();
+		side1.rotation.z = - pi / 2;
+		side1.position.set( -350, -250, -500 );
+		stepUp.add( side1 );
+
+		side2 = buildSide();
+		side2.rotation.x = pi;
+		side2.position.set( 50, -150, -500 + thickness );
+		stepUp.add( side2 );
+
+		spreader1 = buildSpreader();
+		spreader1.rotation.z = - pi / 2;
+		spreader1.position.set( 620, -200, -500 );
+		stepUp.add( spreader1 );
+
+		spreader2 = buildSpreader();
+		spreader2.rotation.z = - pi / 2;
+		spreader2.position.set( 720, -200, -500 );
+		stepUp.add( spreader2 );
+
+// Step Up Assembled
+
+		assembledBack1 = buildBack();
+		assembledBack1.position.set( 0, 0, 500 );
+		stepUp.add( assembledBack1 );
+
+		assembledBack2 = buildBack();
+		assembledBack2.position.set( 0, 0, 570 );
+		stepUp.add( assembledBack2 );
+
+		AssembledSpreader1 = buildSpreader();
+		AssembledSpreader1.rotation.x = pi / 2;
+		AssembledSpreader1.position.set( 0, height - 230, 500 );
+		stepUp.add( AssembledSpreader1 );
+
+		AssembledSpreader2 = buildSpreader();
+		AssembledSpreader2.rotation.x = pi / 2;
+		AssembledSpreader2.position.set( 0, height - 30, 500);
+		stepUp.add( AssembledSpreader2 );
+
+		AssembledSide1 = buildSide();
+		AssembledSide1.rotation.y = pi / 2;
+		AssembledSide1.position.set( 75, 0, 954 + depthDelta );
+		stepUp.add( AssembledSide1 );
+
+		AssembledSide2 = buildSide();
+		AssembledSide2.rotation.y = pi / 2;
+		AssembledSide2.position.set( width - 100, 0, 954 + depthDelta);
+		stepUp.add( AssembledSide2 );
+
+		assembledStepTop = buildStepTop();
+		assembledStepTop.rotation.x = -pi / 2;
+		assembledStepTop.position.set( 0, height - thickness, 700 );
+		stepUp.add( assembledStepTop );
+
+		assembledStepBottom = buildStepBottom();
+		assembledStepBottom.rotation.x = pi / 2;
+		assembledStepBottom.position.set( 0, 250 + heightDeltaHalf, 592 );
+		stepUp.add( assembledStepBottom );
+
+		scene.add( stepUp );
+		scene.add( edges );
+
+*/
+
+
+	}
+
+	function buildLeg() {
+
+		var leg = new THREE.Object3D();
+
+		var mid = width - tab - thickness;
+
+		var path = [ mid, height - tab, width - mid - thickness - cutDepth,  height - width - mid - cutWidth, -cutDepth, cutWidth, thickness + cutDepth, mid, 
+			-tab, -thickness - cutDepth, - cutWidth, cutDepth, -mid + thickness, -mid + thickness, cutDepth, -cutWidth, -thickness - cutDepth
+
+		];
+
+		var boundary = buildVerticesBySingles( path );
+
+
+		leg.add( drawPolyline( boundary, 0 ) );
+//		seat.add( originMarker.clone() );
+
+		return leg;
+
+
+
+	}
+
+	function buildSeat1() {
+
+		var seat = new THREE.Object3D();
+
+		var mid = width - tab - thickness;
+
+		var path = [ mid, thickness + cutDepth, cutWidth, -cutDepth, tab - cutWidth, mid, -thickness - cutDepth, cutWidth, cutDepth, tab - cutWidth, 
+			-mid, -thickness - cutDepth, - cutWidth, cutDepth, -tab + cutWidth, -mid, thickness + cutDepth, -cutWidth, -cutDepth
+
+		];
+
+		var boundary = buildVerticesBySingles( path );
+
+		holes = [];
+		holes.push( drawCenterHole(  { x: mid, y: ( mid + thickness ) } ) );
+
+		seat.add( drawPolyline( boundary, { holes: holes } ) );
+//		seat.add( originMarker.clone() );
+
+		return seat;
+
+
+	}
+
+	function drawCenterHole( parameters ) {
+
+		var mid = width - tab - thickness;
+
+		var side = width - ( mid + mid + thickness + thickness );
+
+		path = [ side, side, -side, -side ];
+
+		vertices = buildVerticesBySingles( path, parameters );
+
+		return vertices;
+
+	}
+
+	function buildBack() {
+
+		var back = new THREE.Object3D();
+
+		var shoulder = thickness + cutDepth;
+		var upstand = 100 - cutWidth;
+
+		var path = [
+			[ 0, 0 ], [ 75, 0 ], [ 0, upstand ], [ -cutDepth, 0 ], [ 0, cutWidth ], [ face, 0 ], [ 0, -cutWidth ], [ -cutDepth, 0 ], [ 0, -upstand ], [ 40, 0 ], [ 50, 250 + heightDelta ], [ 180 + widthDelta, 0 ],
+				[ 50, -250  - heightDelta ], [ 40, 0 ], [ 0, upstand ], [ -cutDepth, 0 ], [ 0, cutWidth ], [ face, 0 ], [ 0, -cutWidth ], [ -cutDepth, 0 ], [ 0, -upstand ], [ 75, 0 ], 
+			[ 0, 505 + heightDelta], 
+			[-60, 0 ], [ 0, -cutDepth ], [ -cutWidth, 0 ], [ 0, shoulder ], [ -80, 0 ], [ -cutDepth, -40 ], [ -40, 0 ], [ -cutDepth, 20 ], [ -142 + -widthDelta, 0 ], [ -cutDepth, -20 ], [ -40, 0 ], 
+				[ -cutDepth, 40 ], [ -80, 0 ], [ 0, -shoulder ], [ -cutWidth, 0 ], [ 0, cutDepth ], [ -60, 0 ],
+			[ 0, -505 - heightDelta ]
+
+		];
+
+		var boundary = buildVerticesByPairs( path );
+
+		holes = [];
+
+		holes.push( drawMortice( { x: 10, y: height - 50 } ) );
+		holes.push( drawMortice( { x: 260 + widthDeltaHalf, y: height - 50  } ) );
+		holes.push( drawMortice( { x: 500 + widthDelta, y: height - 50  } ) );
+
+		holes.push( drawMortice( { x: 10, y: height - 250 } ) );
+		holes.push( drawMortice( { x: 260 + widthDeltaHalf, y: height - 250 } ) );
+		holes.push( drawMortice( { x: 510 + widthDelta, y: height - 250 } ) );
+
+		holes.push( drawBoneI( 1, { x: 70, y: height - 200 } ) );
+		holes.push( drawBoneI( 1, { x: 445 + widthDelta, y: height - 200 } ) );
+
+		back.add( drawPolyline( boundary, { holes: holes } ) );
+		back.add( originMarker.clone() );
+
+		return back;
+
+
+	}
+
+
+	function buildStepBottom( ) {
+
+		var stepBottom = new THREE.Object3D();
+
+		var path = [ 75, 100, -cutDepth, 20, face, -20, -cutDepth, -100, 360 + widthDelta, 100, -cutDepth, 20, face, -20, -cutDepth, -100, 75, 365 + depthDelta, -width, -365 - depthDelta];
+
+		var boundary = buildVerticesBySingles( path );
+
+		holes = [];
+
+		holes.push( drawBoneI( 1, { x: 70, y: depth - 360 } ) );
+		holes.push( drawBoneI( 1, { x: width - 105, y: depth - 360 } ) );
+
+		stepBottom.add( drawPolyline( boundary, { holes: holes } ) ); 
+
+		return stepBottom;
+
+	}
+
+	function buildStepTop() {
+
+		var stepTop = new THREE.Object3D();
+
+//		var width = 550 + widthDelta;
+
+		path = [ [ 0, 0 - depthDeltaHalf ], [ width, 0 ], [ 0, 250 + depthDeltaHalf ], [ -width, 0 ] ];
+
+		var boundary = buildVerticesByPairs( path );
+
+		holes = [];
+
+		holes.push( drawBoneI( 0, { x: 70, y: 205 } ) );
+		holes.push( drawBoneI( 0, { x: width - 200, y: 205} ) );
+
+		holes.push( buildBoneL( 0, { x: 70, y: 70 } ) );
+		holes.push( buildBoneL( 1, { x: width - 190, y: 102 } ) );
+ 
+		stepTop.add( drawPolyline( boundary, { holes: holes } ) ); 
+
+		return stepTop;
+
+	}
+
+	function buildSide() {
+
+		var side = new THREE.Object3D();
+		var upstand = 100;
+		var path = [ 550 + depthDelta, upstand, -190, cutWidth, cutDepth, 200 + heightDelta, -cutDepth, cutWidth, 150, upstand, -150, cutWidth, cutDepth, 93, -50, -26, -cutWidth, cutDepth, -57, -270 - heightDeltaHalf, -65 - depthDelta, -cutDepth, -cutWidth, 24, -upstand, -24, -cutWidth, cutDepth, -65 ];
+
+		var boundary = buildVerticesBySingles( path );
+
+		var holes = [];
+
+		holes.push( drawBoneI( 0, { x: depth - 140, y: height - 130, width: 50 } ) );
+
+		side.add( drawPolyline( boundary, { holes: holes } ) ); 
+
+		side.add( originMarker.clone() );
+
+		return side;
+
+	}
+
+
+
+	function buildPeg() {
+
+		var peg = new THREE.Object3D();
+		var width = 94;
+		var height = 50;
+
+		path = [  [ width, 0 ], [ 0, face ], [ -width + 20, cutDepth ], [ 0, cutWidth ], [ cutDepth, 0 ], [ 0, cutDepth], [ -face, 0 ], [ 0, -height] ];
+
+		var boundary = buildVerticesByPairs( path, { x: cutDepth } );
+
+		peg.add( drawPolyline( boundary, 0 ) ); 
+
+		return peg;
+
+	}
+
+	function drawMortice( parameters ) {
+
+		path = [ morticeWidth, thickness, -morticeWidth, -thickness ];
+
+		vertices = buildVerticesBySingles( path, parameters );
+
+		return vertices;
+
+	}
+
+
+	function drawBoneI( index, parameters ) {
+
+		var paths = [];
+
+		widthEnd = thickness + 2 * cutDepth;
+
+		width0 = parameters.width ? parameters.width : upstand; 
+
+//horizontal
+		paths[ 0 ] = [ tenon, -cutDepth, width0, cutDepth, tenon, -widthEnd, -tenon, cutDepth, -width0, -cutDepth, -tenon, widthEnd ];
+
+// vertical
+		height1 = 100;
+
+		paths[ 1 ] = [ widthEnd, tenon, -cutDepth, height1 - 2 * tenon, cutDepth, tenon, -widthEnd, -tenon, cutDepth, -height1 + 2 * tenon, -cutDepth, -tenon ];   
+
+		vertices = buildVerticesBySingles( paths[ index ], parameters );
+
+		return vertices;
+
+	}
+
+
+	function buildBoneL( index, parameters ) {
+
+		paths = [];
+
+		paths[ 0 ]  = [ face , 12, -cutDepth, face, 80, -cutDepth, 12, face, -12, -cutDepth, -88, cutDepth, -12, -54, -cutDepth, -12  ];
+
+		paths[ 1 ]  = [ 12, cutDepth , 80, -32, -cutDepth, -12, face, 12, -cutDepth, 54, -12, -cutDepth, -88, cutDepth, -12, -face ];
+
+		vertices = buildVerticesBySingles( paths[ index ], parameters  );
+
+		return vertices;
+
+	}
+
+
+	function buildVerticesBySingles( path, parameters ) {
+
+		var p = parameters || {};
+		var x = p.x ? p.x : 0;
+		var y = p.y ? p.y : 0;
+		var vertices = [  v( x, y ) ];
+
+		for ( var i = 0; i < path.length; ) {
+
+			x += path[ i++ ];
+			vertices.push( v( x, y ) );
+
+			y += path[ i++ ];
+			vertices.push( v( x, y ) )
+
+		}
+
+		return vertices;
+
+	}
+
+	function buildVerticesByPairs( path, parameters ) {
+
+		var p = parameters ? parameters : {};
+		var x = p.x ? p.x : 0;
+		var y = p.y ? p.y : 0;
+		var vertices = [];
+
+		for ( var i = 0; i < path.length; i++ ) {
+
+			x += path[ i ][ 0 ];
+			y += path[ i ][ 1 ];
+
+			vertices.push( v( x, y ) )
+
+		}
+
+		return vertices;
+
+	}
+
+
+	function drawPolyline( vertices, parameters ) {
+
+		var parameters = parameters || {} ;
+
+		px = parameters.px ? parameters.px : 0;
+		py = parameters.py ? parameters.py : 0;
+		pz = parameters.pz ? parameters.pz : 0;
+
+		rx = parameters.rx ? parameters.rx : 0;
+		ry = parameters.ry ? parameters.ry : 0;
+		rz = parameters.rz ? parameters.rz : 0;
+
+		holes = parameters.holes ? parameters.holes : 0;
+
+		var material = new THREE.MeshNormalMaterial();
+
+		var shape = new THREE.Shape();
+		shape.fromPoints( vertices );
+
+		for ( var i = 0; i < holes.length; i++ ) {
+
+			var holePath = new THREE.Path();
+			holePath.fromPoints( holes[ i ] );
+			shape.holes.push( holePath );
+
+		}
+
+		var geometry = shape.extrude( { amount: thickness, bevelEnabled: false} );
+		geometry.applyMatrix( new THREE.Matrix4().makeTranslation( px, py, pz ) );
+
+		geometry.applyMatrix( new THREE.Matrix4().makeRotationX( rx ) );
+		geometry.applyMatrix( new THREE.Matrix4().makeRotationY( ry ) );
+		geometry.applyMatrix( new THREE.Matrix4().makeRotationZ( rz ) );
+
+		mesh = new THREE.Mesh( geometry, material );
+
+		edge = new THREE.EdgesHelper( mesh, 0x333333 );
+		edges.add( edge );
+
+		return mesh;
+
+	}
+
+	function v( x, y ){ return new THREE.Vector2( x, y ); }
+
+	function animate() {
+
+		requestAnimationFrame( animate );
+		controls.update();
+		stats.update();
+		renderer.render( scene, camera );
+
+	}
+
+</script>
+</body>
+</html>

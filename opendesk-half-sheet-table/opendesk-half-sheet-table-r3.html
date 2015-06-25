@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang=en >
+<head>
+<title>OpenDesk Half Sheet Table R3</title>
+<meta charset=utf-8 />
+<meta name=viewport content='width=device-width,user-scalable=no,minimum-scale=1.0,maximum-scale=1.0' />
+</head>
+<body>
+<script src=http://mrdoob.github.io/three.js/build/three.min.js ></script>
+<script src=http://mrdoob.github.io/three.js/examples/js/controls/OrbitControls.js ></script>
+<script src=http://mrdoob.github.io/three.js/examples/js/libs/stats.min.js ></script>
+<script>
+
+	var sides = 3;
+	var radius = 500;
+	var height = 750;
+	var intersect = 0.250;
+	var rail = 150;
+	var thickness = 20;
+	var strut = 20;
+
+	var table, leg, edges;
+
+	var pi = Math.PI, pi2 = 2 * Math.PI, pi05 = 0.5 * Math.PI;
+	var d2r = pi / 180, r2d = 180 / pi;  // degrees / radians
+
+	var raycaster;
+	var css, info, stats, renderer, scene, camera, controls;
+	var geometry, material, mesh;
+
+	init();
+	animate();
+
+	function init() {
+
+		css = document.head.appendChild( document.createElement('style') );
+		css.innerHTML ='body { font: 600 12pt monospace; margin: 0; overflow: hidden; }' +
+			'#i {text-decoration: none; }' +
+		'';
+
+		info = document.body.appendChild( document.createElement( 'div' ) );
+		info.style.cssText = ' margin: 0 10px; max-width: 270px; position: absolute; ';
+		info.innerHTML = '<h3 style=margin:0; ><a href="" >' + document.title + '</a> - ' +
+			'<a id=i href=http://theo-armour.github.io/theo-armour.testing/opendesk-half-sheet-table/ >&#x24D8;</a>' +
+			'</h3>' +
+			'<p><input type=range id=inpSides min=1 max=20 step=1 value=' + sides + ' /> <output id=outSides >' + sides + '</output> Sides</p>' +
+			'<p><input type=range id=inpRadius min=200 max=600 step=5 value=' + radius + ' /> <output id=outRadius >' + radius + '</output> Radius</p>' +
+			'<p><input type=range id=inpHeight min=300 max=1200 step=5 value=' + height + ' /> <output id=outHeight >' + height + '</output> Height</p>' +
+			'<p><input type=range id=inpIntersect min=0.05 max=0.8 step=0.05 value=' + intersect + ' /> <output id=outIntersect >' + intersect + '</output> Intersect</p>' +
+			'<p><input type=range id=inpThickness min=1 max=50 step=1 value=' + thickness + ' /> <output id=outThickness >' + thickness + '</output> Thickness</p>' +
+			'<div id=msg ></div>' +
+		'';
+
+		setEvents( inpSides, outSides );
+
+		setEvents( inpRadius, outRadius );
+
+		setEvents( inpHeight, outHeight );
+
+		setEvents( inpIntersect, outIntersect );
+
+		setEvents( inpThickness, outThickness );
+
+		function setEvents( inp, out ) {
+
+			inp.onmousemove = function () {
+
+				if ( inp.value != out.valueAsNumber ) {
+
+					drawTable( inp.valueAsNumber );
+
+				}
+
+				out.value = inp.valueAsNumber;
+
+			};
+
+			inp.ontouchmove = function () {
+
+				drawTable( out.valueAsNumber );
+
+				out.value = inp.valueAsNumber;
+
+			};
+
+		}
+
+		stats = new Stats();
+		stats.domElement.style.cssText = 'position: absolute; right: 0; top: 0; z-index: 100; ';
+		document.body.appendChild( stats.domElement );
+
+		renderer = new THREE.WebGLRenderer( { alpha: 1, antialias: true, clearColor: 0xffffff }  );
+		renderer.setSize( window.innerWidth, window.innerHeight );
+		document.body.appendChild( renderer.domElement );
+
+		camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 5000 );
+		camera.position.set( 1500, 1500, 1500 );
+
+		controls = new THREE.OrbitControls( camera, renderer.domElement );
+		controls.target.set( 0, 300, 0 );
+
+		scene = new THREE.Scene();
+
+		inpThickness.ontouchend = drawTable();
+
+// axes
+		var axisHelper = new THREE.AxisHelper( 50 );
+		scene.add( axisHelper );
+
+		window.addEventListener( 'resize', onWindowResize, false );
+
+		drawTable();
+
+	}
+
+
+	function drawTable() {
+
+		inpSides.title = sides = parseInt( inpSides.value, 10 );
+		inpRadius.title = radius = parseInt( inpRadius.value, 10 );
+		inpHeight.title = height = parseInt( inpHeight.value, 10 );
+		inpIntersect.title = intersect = parseFloat( inpIntersect.value );
+		inpThickness.title = thickness = parseInt( inpThickness.value, 10 );
+
+		scene.remove( table );
+
+		scene.remove( edges );
+
+		table = new THREE.Object3D();
+
+		drawLegs();
+
+		drawTableTop();
+
+		drawBase();
+
+		scene.add( table );
+
+	}
+
+	function drawLegs() {
+
+		leg = new THREE.Object3D();
+
+		var offX = -70;
+		var offZ = 0;
+		s = 20; // strut width
+
+		leg.add( li3( offX + 0, 0, offZ,  offX + radius, 0, offZ ) ); // ground
+		leg.add( li3( offX + 0, height, offZ,  offX + radius, height, offZ ) ); // top
+		leg.add( li3( offX + 0, height, offZ,  offX + 0, height - rail, offZ ) ); // rail end
+		leg.add( li3( offX + 0, height - rail, offZ,  offX + radius, height - rail, offZ ) ); // rail bottom
+
+		line1 = li3( offX, height - 0.5 * rail, offZ,  offX + radius, 0, offZ );
+		leg.add( line1 ); // lower leg strut
+
+		line2 = li3( offX + 0.5 * radius + intersect * 0.5 * radius, height, offZ,  offX + radius, 0, offZ );
+		leg.add( line2 ); // upper leg strut
+
+		startPoint = v( offX, height - 0.5 * rail, offZ );
+		endPoint = v( offX + radius, 0, offZ );
+
+		l3 = new THREE.Line3( startPoint, endPoint );
+
+		pt = l3.at( intersect );
+
+		line3 = li3( offX + radius, height, offZ, pt.x, pt.y, offZ );
+		leg.add( line3 ); // cross strut
+
+		leg.add( li3( pt.x, pt.y, offZ, pt.x, height, offZ ) );
+
+		ptInt = intersectionTwoLines( line2, line3 );
+
+		leg.add( li3( pt.x, height, offZ, ptInt.x, ptInt.y, offZ ) );
+
+		path = new THREE.Path();
+
+		outline = li3( offX + radius - s, 0, offZ, pt.x - s, pt.y, offZ,
+			pt.x - s, height - rail, offZ,  offX, height - rail, offZ,  
+			offX, height, offZ,  offX + radius + s, height, offZ,
+			offX + radius + s, height - s, offZ,  offX + radius, height - s, offZ,
+			ptInt.x + s, ptInt.y, offZ,  offX + radius + s, 0, offZ,
+			offX + radius - s, 0, offZ
+		);
+
+		outline.material.color = 'black';
+		leg.add( outline );
+
+
+		var points = [ v2( offX + radius - s ), v2( pt.x - s, pt.y ),
+			v2( pt.x - s, height - rail ), v2( offX, height - rail ),  
+			v2( offX, height),   v2( offX + radius + s, height ),
+			v2( offX + radius + s, height - s),  v2( offX + radius, height - s ),
+			v2( ptInt.x + s, ptInt.y ),  v2( offX + radius + s, 0 ),
+			v2( offX + radius - s, 0 )
+		];
+
+/*
+		var path = new THREE.Path();
+		path.fromPoints( points.reverse() );
+		var geometry = path.createSpacedPointsGeometry( 200 );
+		shape = new THREE.Shape( geometry.vertices );
+*/
+
+		shape = new THREE.Shape();
+//		var path = new THREE.Path();
+		shape.fromPoints( points.reverse() );
+//console.log( points );
+//		var geometry = path.createSpacedPointsGeometry( 200 );
+
+//		var holePath = new THREE.Path();
+//		holePath.fromPoints( [ v( offX + radius, 20, 0 ), pt.clone(), ptInt.clone(), v( offX + radius, 20, 0 ) ] );
+
+		holePath = offset2( [ v( offX + radius, 0, 0 ), pt.clone(), ptInt.clone(), v( offX + radius, 0, 0) ] ); // bottom
+		geometry = holePath.createSpacedPointsGeometry( 100 );
+		shape.holes.push( new THREE.Shape( geometry.vertices ) );
+
+		holePath = offset2( [ v( pt.x, height, 0 ), ptInt.clone(), pt.clone(), v( pt.x, height, 0) ] );
+		geometry = holePath.createSpacedPointsGeometry( 100 );
+		shape.holes.push( new THREE.Shape( geometry.vertices ) );
+
+		holePath = offset2( [ v( pt.x, height, 0 ), line2.geometry.vertices[0], ptInt.clone(), v( pt.x, height, 0) ] );
+		geometry = holePath.createSpacedPointsGeometry( 100 );
+		shape.holes.push( new THREE.Shape( geometry.vertices ) );
+
+		holePath = offset2( [ v( offX + radius, height, 0 ), ptInt.clone(), line2.geometry.vertices[0], v( offX + radius, height, 0) ] );
+		geometry = holePath.createSpacedPointsGeometry( 100 );
+		shape.holes.push( new THREE.Shape( geometry.vertices ) );
+
+
+//		holePath = new THREE.Path();
+//		holePath.fromPoints( [ v( pt.x, height - s, 0 ), ptInt.clone(), pt.clone(), v( pt.x, height, 0) ] );
+//		shape.holes.push( holePath );
+
+
+		geometry = shape.extrude( { amount: thickness, bevelEnabled: false} );
+ 		geometry.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 0, -thickness - 2 ) );
+		var material = new THREE.MeshNormalMaterial();
+
+		var mesh = new THREE.Mesh( geometry, material );
+		leg.add( mesh );
+
+		edges = new THREE.EdgesHelper( mesh, 0x333333 );
+		leg.add( edges );
+
+//		offset( [ v( offX + radius, 0, 0 ), pt.clone(), ptInt.clone(), v( offX + radius, 0, 0) ] ); // bottom
+//		offset( [ v( pt.x, height, 0 ), ptInt.clone(), pt.clone(), v( pt.x, height, 0) ] );
+//		offset( [ v( pt.x, height, 0 ), line2.geometry.vertices[0], ptInt.clone(), v( pt.x, height, 0) ] ); // top left
+//		offset( [ v( offX + radius, height, 0 ), ptInt.clone(), line2.geometry.vertices[0], v( offX + radius, height, 0) ] );
+
+
+		for ( var i = 0; i < sides; i++ ) {
+
+			obj = leg.clone();
+			obj.rotation.y = i * 2 * Math.PI / sides;
+			x = 40 * Math.sin( i * 2 * Math.PI / sides );
+			z = 40 * Math.cos( i * 2 * Math.PI / sides );
+			obj.position.set( x, 0, z );
+			table.add( obj );
+
+		}
+
+	}
+
+	function drawBase() {
+
+		geometry = new THREE.BoxGeometry( 2000, thickness, 2000 );
+		material = new THREE.MeshNormalMaterial();
+		mesh = new THREE.Mesh( geometry, material );
+		mesh.position.set( 0, -100, 0 );
+		table.add( mesh );
+
+		mesh = new THREE.GridHelper( 1000, 100 );
+		mesh.position.set( 0, -100 + 0.5 * thickness, 0 );
+		table.add( mesh );
+	}
+
+	function drawTableTop() {
+
+		var fillet = 50;
+
+		var dAng = 10;
+
+		var material = new THREE.MeshNormalMaterial( { opacity: 0.5, transparent: true } );
+
+		var path = new THREE.Path();
+
+		var angle = 360 / sides;
+
+		var x, y;
+
+		var holePath = new THREE.Path();
+
+		x0 = 20 * Math.cos( ( 0 ) * d2r );
+		y0 = 20 * Math.sin( ( 0 ) * d2r );
+		holePath.moveTo( x0, y0 );
+
+		for ( var i = 0; i < sides; i++ ) {
+
+			x = radius * Math.cos( ( i * angle - dAng ) * d2r );
+			y = radius * Math.sin( ( i * angle - dAng ) * d2r );
+
+			path.absarc( x, y, fillet, ( i * angle - dAng ) * d2r - Math.PI / ( sides ) , ( i * angle - dAng ) * d2r + Math.PI / ( 4 * sides), false );
+
+			x = radius * Math.cos( ( i * angle + dAng ) * d2r );
+			y = radius * Math.sin( ( i * angle + dAng ) * d2r );
+
+			path.absarc( x, y, fillet, ( i * angle + dAng ) * d2r - Math.PI / ( 4 * sides), ( i * angle + dAng ) * d2r + Math.PI / ( sides), false );
+
+			x0 = 20 * Math.cos( ( i * angle + 90 ) * d2r );
+			y0 = 20 * Math.sin( ( i * angle + 90 ) * d2r );
+			holePath.lineTo( x0, y0 );
+
+
+			x = x0 + ( 0.5 * radius ) * Math.cos( ( i * angle ) * d2r );
+			y = y0 + ( 0.5 * radius ) * Math.sin( ( i * angle ) * d2r );
+
+			holePath.lineTo( x, y );
+
+			x = x + thickness * Math.cos( ( i * angle + 90 ) * d2r );
+			y = y + thickness * Math.sin( ( i * angle + 90 ) * d2r );
+
+			holePath.lineTo( x, y );
+
+			x = x + ( 0.5 * radius ) * Math.cos( ( i * angle + 180 ) * d2r );
+			y = y + ( 0.5 * radius ) * Math.sin( ( i * angle + 180 ) * d2r );
+
+			holePath.lineTo( x, y );
+
+//			x = x + ( -thickness + 0.5 * radius ) * Math.cos( ( i * angle + 180 ) * d2r );
+//			y = y + ( -thickness + 0.5 * radius ) * Math.sin( ( i * angle + 180 ) * d2r );
+
+//			holePath.lineTo( x0, y0  );
+
+		}
+
+//		holePath.lineTo( x0, y0 );
+/*
+		var holePath = new THREE.Path();
+
+		holePath.moveTo( 0, 0 );
+
+		rad = 300;
+
+		for ( var i = 0; i < sides; i++ ) {
+
+			angle1 = i * pi2 / sides;
+
+			x = rad * Math.cos( angle1 );
+			y = rad * Math.sin( angle1 );
+
+			holePath.lineTo( x, y );
+
+			x += thickness * Math.cos( angle1 + pi05 );
+			y += thickness * Math.sin( angle1 + pi05);
+
+			holePath.lineTo( x, y );
+
+//			x2 += rad * Math.cos( angle1 + pi);
+//			y2 += rad * Math.sin( angle1 + pi);
+
+			hypotenuse = thickness / Math.cos( angle1 );
+
+			x2 = -hypotenuse * Math.cos( (i + 1 )* pi2 / sides );
+			y2 = hypotenuse * Math.sin( (i + 1 )* pi2 / sides );
+
+			holePath.lineTo( x2, y2);
+
+//			holePath.lineTo( 0, 0 );
+
+
+		}
+
+			holePath.lineTo( 0, 0 );
+*/
+
+
+
+		path = path.createSpacedPointsGeometry( 100 );
+
+		var shape = new THREE.Shape( path.vertices );
+
+		shape.holes.push( holePath );
+
+		var geometry = shape.extrude( { amount: thickness, bevelEnabled: false} );
+
+		var mesh = new THREE.Mesh( geometry, material );
+		mesh.rotation.x = pi05;
+		mesh.position.y = height + 50;
+
+		table.add( mesh );
+
+		edges = new THREE.EdgesHelper( mesh, 0x333333 );
+		table.add( edges );
+
+	}
+
+	function pointDistanceAngle( distance, angle ) {
+
+		x = distance * Math.cos( angle * d2r );
+		y = distance * Math.sin( angle * d2r );
+// console.log( x, y );
+		point = v( x, y, 0 );
+
+		return point;
+
+	}
+
+	function offset2( dataArray ) {
+
+		var material = new THREE.LineBasicMaterial( { color: 0x000000 } );
+		var lines = [];
+		var line;
+		var points = [];
+		var pt1, pt2, pt3;
+		var angle1, angle2, angle3;
+		var vectorDelta;
+
+		for ( var i = 0; i < dataArray.length - 1; i++ ) {
+
+			pt1 = dataArray[ i ];
+			vectorDelta = dataArray[ i + 1 ].clone().sub( pt1 );
+			angle1 = Math.atan2( vectorDelta.y, vectorDelta.x );
+
+			pt2 = v( pt1.x + strut * Math.cos( angle1 - Math.PI / 2 ), pt1.y - strut * Math.sin( angle1 + Math.PI / 2 ), 0 );
+			length = pt1.distanceTo( dataArray[ i + 1] );
+
+			pt3 = v( pt2.x + length * Math.cos( angle1 ), pt2.y + length * Math.sin( angle1 ), 0 )
+
+			var geo = new THREE.Geometry();
+			geo.vertices = [ pt2, pt3 ];
+
+			line = new THREE.Line3( pt2, pt3 );
+			lines.push( line );
+
+		}
+
+		var pt;
+
+		for ( var i = 0; i < lines.length; i++ ) {
+
+			if ( i + 1 < lines.length ) {
+
+				pt = intersectionTwoLine3( lines[ i ], lines [ i + 1 ] );
+
+			} else {
+
+				pt = intersectionTwoLine3( lines[ i ], lines [ 0 ] );
+
+			}
+
+			points.push( pt );
+
+		}
+
+		var path = createPath( points.reverse() );
+//		path = path.createSpacedPointsGeometry( 100 );
+//console.log( path );
+
+//		var path = new THREE.Path();
+//		path.fromPoints( points );
+		return path;
+
+	}
+
+
+	function offset( dataArray ) {
+
+		var material = new THREE.LineBasicMaterial( { color: 0x000000 } );
+		var lines = [];
+		var line;
+		var points = [];
+		var pt1, pt2, pt3;
+		var angle1, angle2, angle3;
+		var vectorDelta;
+
+		for ( var i = 0; i < dataArray.length - 1; i++ ) {
+
+			pt1 = dataArray[ i ];
+			vectorDelta = dataArray[ i + 1 ].clone().sub( pt1 );
+			angle1 = Math.atan2( vectorDelta.y, vectorDelta.x );
+
+			pt2 = v( pt1.x + strut * Math.cos( angle1 - Math.PI / 2 ), pt1.y - strut * Math.sin( angle1 + Math.PI / 2 ), 0 );
+			length = pt1.distanceTo( dataArray[ i + 1] );
+
+			pt3 = v( pt2.x + length * Math.cos( angle1 ), pt2.y + length * Math.sin( angle1 ), 0 )
+
+			var geo = new THREE.Geometry();
+			geo.vertices = [ pt2, pt3 ];
+
+			line = new THREE.Line3( pt2, pt3 );
+			lines.push( line );
+
+		}
+
+		var pt;
+
+		for ( var i = 0; i < lines.length; i++ ) {
+
+			if ( i + 1 < lines.length ) {
+
+				pt = intersectionTwoLine3( lines[ i ], lines [ i + 1 ] );
+
+			} else {
+
+				pt = intersectionTwoLine3( lines[ i ], lines [ 0 ] );
+
+			}
+
+			points.unshift( pt );
+
+		}
+
+		var path = createPath( points );
+		var geometry = path.createSpacedPointsGeometry( 100 );
+		var shape = new THREE.Shape( geometry.vertices );
+		geometry = shape.extrude( { amount: thickness, bevelEnabled: false} );
+
+		var material = new THREE.MeshNormalMaterial();
+
+		var mesh = new THREE.Mesh( geometry, material );
+//		mesh.position.z = -30;
+		leg.add( mesh );
+
+//		edges = new THREE.EdgesHelper( mesh, 0x333333 );
+//		scene.add( edges );
+
+	}
+
+	function createPath( points ) {
+
+		var radius = 10;
+//		var path = new THREE.Path();
+
+		var path = new THREE.Shape();
+		var angles = [];
+		var p;
+
+		for ( var i = 0; i < points.length; i++) {
+
+			if ( i + 1 < points.length ) {
+
+				p = points[ i + 1 ].clone().sub( points[ i ] );
+
+			} else {
+
+				p = points[ i ].clone().sub( points[ 0 ] );
+
+			}
+
+			angles.push( Math.atan2( p.y, p.x ) );
+
+		}
+
+		for ( i = 0; i < points.length; i++ ) {
+
+			if ( i === 0 ) {
+
+				path.absarc( points[ i ].x, points[ i ].y, radius, angles[ points.length - 1 ] + Math.PI / 2, angles[ i ] - Math.PI / 2, false );
+
+			} else if ( i === points.length - 1 ) {
+
+				path.absarc( points[ i ].x, points[ i ].y, radius, angles[ i - 1 ] - Math.PI / 2, angles[ i ] + Math.PI / 2, false );
+
+			} else {
+
+				path.absarc( points[ i ].x, points[ i ].y, radius, angles[ i - 1 ] - Math.PI / 2, angles[ i ] - Math.PI / 2, false );
+
+			}
+
+		}
+
+		return path;
+
+	}
+
+	function intersectionTwoLine3( line1, line2 ) {
+
+		var line1Start = line1.start;
+		var line1End = line1.end;
+
+		var line2Start = line2.start;
+		var line2End = line2.end;
+
+		var denominator = ( (line2End.y - line2Start.y ) * ( line1End.x - line1Start.x ) )
+			- ( ( line2End.x - line2Start.x ) * ( line1End.y - line1Start.y ) );
+
+		if (denominator == 0) {
+
+console.log( 'not' );
+
+			return;
+
+		}
+
+		a = line1Start.y - line2Start.y;
+		b = line1Start.x - line2Start.x;
+
+		numerator1 = ( (line2End.x - line2Start.x ) * a ) - ( (line2End.y - line2Start.y ) * b );
+		numerator2 = ( (line1End.x - line1Start.x ) * a ) - ( (line1End.y - line1Start.y ) * b );
+
+		a = numerator1 / denominator;
+		b = numerator2 / denominator;
+
+		x = line1Start.x + ( a * (line1End.x - line1Start.x ));
+		y = line1Start.y + ( a * (line1End.y - line1Start.y ));
+
+		return v( x, y, 0 );
+
+	}
+
+	function intersectionTwoLines( line1, line2 ) {
+
+			line1Start = line1.geometry.vertices[ 0 ];
+			line1End = line1.geometry.vertices[ 1 ];
+
+			line2Start = line2.geometry.vertices[ 0 ];
+			line2End = line2.geometry.vertices[ 1 ];
+
+			denominator = ( (line2End.y - line2Start.y ) * ( line1End.x - line1Start.x ) ) 
+				- ( ( line2End.x - line2Start.x ) * ( line1End.y - line1Start.y ) );
+
+//console.log( denominator  );
+
+			if (denominator == 0) {
+
+console.log( 'not' );
+				return;
+
+			}
+
+			a = line1Start.y - line2Start.y;
+			b = line1Start.x - line2Start.x;
+
+			numerator1 = ( (line2End.x - line2Start.x ) * a ) - ( (line2End.y - line2Start.y ) * b );
+			numerator2 = ( (line1End.x - line1Start.x ) * a ) - ( (line1End.y - line1Start.y ) * b );
+
+			a = numerator1 / denominator;
+			b = numerator2 / denominator;
+
+			x = line1Start.x + ( a * (line1End.x - line1Start.x ));
+			y = line1Start.y + ( a * (line1End.y - line1Start.y ));
+
+			return v( x, y, 0 );
+
+	}
+
+	function li3() {
+
+		var geometry = new THREE.Geometry();
+
+		for ( var i = 0; i < arguments.length; ) {
+
+			geometry.vertices.push( v( arguments[ i++ ], arguments[ i++ ], arguments[ i++ ] ) );
+
+		}
+
+		var material = new THREE.LineBasicMaterial( { color: 'red' } );
+
+		return new THREE.Line( geometry, material );
+
+	}
+
+	function v( x, y, z ){ return new THREE.Vector3( x, y, z ); }
+	function v2( x, y ){ return new THREE.Vector2( x, y ); }
+
+	function onWindowResize() {
+
+		camera.aspect = window.innerWidth / window.innerHeight;
+		camera.updateProjectionMatrix();
+
+		renderer.setSize( window.innerWidth, window.innerHeight );
+
+	}
+
+	function animate() {
+
+		requestAnimationFrame( animate );
+		controls.update();
+		stats.update();
+		renderer.render( scene, camera );
+
+	}
+
+</script>
+</body>
+</html>

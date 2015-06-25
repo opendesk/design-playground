@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang=en >
+<head>
+<title>opendesk-half-sheet-table-r1.html</title>
+<meta charset=utf-8 />
+<meta name=viewport content='width=device-width,user-scalable=no,minimum-scale=1.0,maximum-scale=1.0' />
+</head>
+<body>
+<script src=http://mrdoob.github.io/three.js/build/three.min.js ></script>
+<script src=http://mrdoob.github.io/three.js/examples/js/controls/OrbitControls.js ></script>
+<script src=http://mrdoob.github.io/three.js/examples/js/libs/stats.min.js ></script>
+<script>
+
+	var sides = 3
+	var radius = 500;
+	var height = 750;
+	var intersect = 0.250;
+	var rail = 150;
+
+	var legs, leg, edges;
+
+	var pi = Math.PI, pi2 = 2 * Math.PI, pi05 = 0.5 * Math.PI;
+	var d2r = pi / 180, r2d = 180 / pi;  // degrees / radians
+	var raycaster;
+	var css, info, stats, renderer, scene, camera, controls;
+	var geometry, material, mesh;
+
+	init();
+	animate();
+
+	function init() {
+
+		css = document.head.appendChild( document.createElement('style') );
+		css.innerHTML ='body { font: 600 12pt monospace; margin: 0; overflow: hidden; }' ;
+
+		info = document.body.appendChild( document.createElement( 'div' ) );
+		info.style.cssText = 'margin: 20px; position: absolute; ';
+		info.innerHTML = '<a href="" ><h1>' + document.title + '</h1></a>' +
+			'<p><input type=range id=inpSides min=1 max=20 step=1 value=' + sides + ' onmousemove=drawLeg(); /> Sides</p>' +
+			'<p><input type=range id=inpRadius min=200 max=600 step=5 value=' + radius + ' onmousemove=drawLeg(); /> Radius</p>' +
+			'<p><input type=range id=inpHeight min=300 max=1200 step=5 value=' + height + ' onmousemove=drawLeg(); /> Height</p>' +
+			'<p><input type=range id=inpIntersect min=0.1 max=0.9 step=0.05 value=' + intersect + ' onmousemove=drawLeg(); /> Intersect</p>' +
+			'<div id=msg ></div>' +
+		'';
+
+		stats = new Stats();
+		stats.domElement.style.cssText = 'position: absolute; right: 0; top: 0; z-index: 100; ';
+		document.body.appendChild( stats.domElement );
+
+		renderer = new THREE.WebGLRenderer( { alpha: 1, antialias: true, clearColor: 0xffffff }  );
+		renderer.setSize( window.innerWidth, window.innerHeight );
+		document.body.appendChild( renderer.domElement );
+
+		camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 5000 );
+		camera.position.set( 1500, 1500, 1500 );
+
+		controls = new THREE.OrbitControls( camera, renderer.domElement );
+		controls.target.set( 0, 300, 0 );
+
+		scene = new THREE.Scene();
+
+// ground box
+		geometry = new THREE.BoxGeometry( 1000, 2, 1000 );
+		material = new THREE.MeshNormalMaterial();
+		mesh = new THREE.Mesh( geometry, material );
+		mesh.position.set( 0, -100, 0 );
+		scene.add( mesh );
+
+		mesh = new THREE.GridHelper( 500, 10 );
+		mesh.position.set( 0, -99, 0 );
+		scene.add( mesh );
+
+// axes
+		var axisHelper = new THREE.AxisHelper( 50 );
+		scene.add( axisHelper );
+
+		window.addEventListener( 'resize', onWindowResize, false );
+
+		drawLeg();
+
+	}
+
+
+	function drawLeg() {
+
+		inpSides.title = sides = parseInt( inpSides.value, 10 );
+		inpRadius.title = radius = parseInt( inpRadius.value, 10 );
+		inpHeight.title = height = parseInt( inpHeight.value, 10 );
+		inpIntersect.title = intersect = parseFloat( inpIntersect.value );
+
+		scene.remove( legs );
+//		scene.remove( legs );
+		scene.remove( edges );
+
+		legs = new THREE.Object3D();
+		leg = new THREE.Object3D();
+
+		leg.add( li( 0, 0, radius, 0 ) );
+		leg.add( li( 0, height, radius, height ) );
+		leg.add( li( 0, height, 0, height - rail ) );
+		leg.add( li( 0, height - rail, rail, height - rail ) );
+
+		lin1 = li( 0, height - 0.5 * rail, radius, 0 )
+		leg.add( lin1 );
+
+		lin2 = li( 0.5 * radius + intersect * 0.5 * radius, height, radius, 0 )
+		leg.add( lin2 );
+
+		startPoint = v( 0, height - 0.5 * rail, 0 );
+		endPoint = v( radius, 0, 0 );
+		l3 = new THREE.Line3( startPoint, endPoint );
+
+		pt = l3.at( intersect );
+
+		lin3 = li( radius, height, pt.x, pt.y );
+		leg.add( lin3 );
+
+		leg.add( li( pt.x, pt.y, pt.x, height ) );
+
+		ptInt = intersectionTwoLines( lin2, lin3 );
+
+		leg.add( li( pt.x, height, ptInt.x, ptInt.y ) );
+
+//		scene.add( leg );
+
+		offset( [ v( radius, 0, 0 ), pt.clone(), ptInt.clone(), v( radius, 0, 0) ] );
+		offset( [ v( pt.x, height, 0 ), ptInt.clone(), pt.clone(), v( pt.x, height, 0) ] );
+		offset( [ v( pt.x, height, 0 ), lin2.geometry.vertices[0], ptInt.clone(), v( pt.x, height, 0) ] );
+		offset( [ v( radius, height, 0 ), ptInt.clone(), lin2.geometry.vertices[0], v( radius, height, 0) ] );
+
+		for ( var i = 0; i < sides; i++ ) {
+
+			obj = leg.clone();
+			obj.rotation.y = i * 2 * Math.PI / sides;
+			legs.add( obj );
+
+		}
+
+		scene.add( legs );
+
+
+/*
+		p = lin1.geometry.vertices[ 1 ].clone().sub( lin1.geometry.vertices[ 0 ] );
+		a1 = Math.atan2( p.y, p.x ) + Math.PI / 2;
+
+		p = lin2.geometry.vertices[ 1 ].clone().sub( lin2.geometry.vertices[ 0 ] );
+		a2 = Math.atan2( p.y, p.x ) + Math.PI / 2;
+
+		bi = a1 - 0.5 * ( a1 - a2 ) + pi / 2 ;
+
+// console.log( a1 * r2d , a2 * r2d, bi * r2d  );
+
+		x1 = radius + 50 * Math.cos( bi );
+		y1 = 50 * Math.sin( bi );
+
+		geometry = new THREE.BoxGeometry( 5, 5, 5 );
+		material = new THREE.MeshNormalMaterial();
+		mesh = new THREE.Mesh( geometry, material );
+		mesh.position.set( x1, y1, 0 );
+		leg.add( mesh );
+
+
+		p = lin1.geometry.vertices[ 1 ].clone().sub( lin1.geometry.vertices[ 0 ] );
+		a1 = Math.atan2( p.y, p.x ) + Math.PI / 2;
+
+		p = lin3.geometry.vertices[ 1 ].clone().sub( lin3.geometry.vertices[ 0 ] );
+		a2 = Math.atan2( p.y, p.x ) + Math.PI / 2;
+
+		bi = a1 - 0.5 * ( a1 - a2 )  ;
+
+// console.log( a1 * r2d , a2 * r2d, bi * r2d  );
+
+		x2 = pt.x + 50 * Math.cos( bi );
+		y2 = pt.y + 50 * Math.sin( bi );
+
+		geometry = new THREE.BoxGeometry( 5, 5, 5 );
+		material = new THREE.MeshNormalMaterial();
+		mesh = new THREE.Mesh( geometry, material );
+		mesh.position.set( x2, y2, 0 );
+		leg.add( mesh );
+
+
+
+		p = lin2.geometry.vertices[ 1 ].clone().sub( lin2.geometry.vertices[ 0 ] );
+		a1 = Math.atan2( p.y, p.x ) + Math.PI / 2;
+
+		p = lin3.geometry.vertices[ 0 ].clone().sub( lin3.geometry.vertices[ 1 ] );
+		a2 = Math.atan2( p.y, p.x ) + Math.PI / 2;
+
+		bi = a1 - 0.5 * ( a1 - a2 ) + pi;
+
+// console.log( a1 * r2d , a2 * r2d, bi * r2d  );
+
+		x3 = ptInt.x + 50 * Math.cos( bi );
+		y3 = ptInt.y + 50 * Math.sin( bi );
+
+		geometry = new THREE.BoxGeometry( 5, 5, 5 );
+		material = new THREE.MeshNormalMaterial();
+		mesh = new THREE.Mesh( geometry, material );
+		mesh.position.set( x3, y3, 0 );
+		leg.add( mesh );
+*/
+
+//		drawArcs2 ( v( x3, y3, 0), v( x2, y2, 0), v( x1, y1, 0) );
+
+
+
+	}
+
+
+	function offset( dataArray ) {
+
+		var distance = 20;
+
+		var material = new THREE.LineBasicMaterial( { color: 0x000000 } );
+		var lines = [];
+		var points = [];
+
+//		dataArray.reverse()
+
+		for ( var i = 0; i < dataArray.length - 1; i++ ) {
+
+			pt1 = dataArray[ i ];
+			vectorDelta = dataArray[ i + 1 ].clone().sub( pt1 );
+			angle1 = Math.atan2( vectorDelta.y, vectorDelta.x );
+
+			pt2 = v( pt1.x + distance * Math.cos( angle1 - Math.PI / 2 ), pt1.y - distance * Math.sin( angle1 + Math.PI / 2 ), 0 );
+			length = pt1.distanceTo( dataArray[ i + 1] );
+
+			pt3 = v( pt2.x + length * Math.cos( angle1 ), pt2.y + length * Math.sin( angle1 ), 0 )
+
+			var geo = new THREE.Geometry();
+			geo.vertices = [ pt2, pt3 ];
+
+			line2 = new THREE.Line3( pt2, pt3 );
+			lines.push( line2 );
+
+		}
+
+		var pt;
+
+		for ( var i = 0; i < lines.length; i++ ) {
+
+			if ( i + 1 < lines.length ) {
+
+				pt = intersectionTwoLines2( lines[ i ], lines [ i + 1 ] );
+
+			} else {
+
+				pt = intersectionTwoLines2( lines[ i ], lines [ 0 ] );
+
+			}
+
+			points.unshift( pt );
+
+		}
+
+		var path = createPath( points );
+		var geometry = path.createSpacedPointsGeometry( 100 );
+		var shape = new THREE.Shape( geometry.vertices );
+		geometry = shape.extrude( { amount: 20, bevelEnabled: false} );
+
+		var material = new THREE.MeshNormalMaterial();
+
+		var mesh = new THREE.Mesh( geometry, material );
+//		mesh.position.z = -30;
+		leg.add( mesh );
+
+//		edges = new THREE.EdgesHelper( mesh, 0x333333 );
+//		scene.add( edges );
+
+	}
+
+	function createPath( points ) {
+
+		var radius = 10;
+		var path = new THREE.Path();
+		var angles = [];
+		var p;
+
+		for ( var i = 0; i < points.length; i++) {
+
+			if ( i + 1 < points.length ) {
+
+				p = points[ i + 1 ].clone().sub( points[ i ] );
+
+			} else {
+
+				p = points[ i ].clone().sub( points[ 0 ] );
+
+			}
+
+			angles.push( Math.atan2( p.y, p.x ) );
+
+		}
+
+		for ( i = 0; i < points.length; i++ ) {
+
+			if ( i === 0 ) {
+
+				path.absarc( points[ i ].x, points[ i ].y, radius, angles[ points.length - 1 ] + Math.PI / 2, angles[ i ] - Math.PI / 2, false );
+
+			} else if ( i === points.length - 1 ) {
+
+				path.absarc( points[ i ].x, points[ i ].y, radius, angles[ i - 1 ] - Math.PI / 2, angles[ i ] + Math.PI / 2, false );
+
+			} else {
+
+				path.absarc( points[ i ].x, points[ i ].y, radius, angles[ i - 1 ] - Math.PI / 2, angles[ i ] - Math.PI / 2, false );
+
+			}
+
+		}
+
+		return path;
+
+	}
+
+	function intersectionTwoLines2( line1, line2 ) {
+
+		var line1Start = line1.start;
+		var line1End = line1.end;
+
+		var line2Start = line2.start;
+		var line2End = line2.end;
+
+		var denominator = ( (line2End.y - line2Start.y ) * ( line1End.x - line1Start.x ) )
+			- ( ( line2End.x - line2Start.x ) * ( line1End.y - line1Start.y ) );
+
+		if (denominator == 0) {
+
+console.log( 'not' );
+
+			return;
+
+		}
+
+		a = line1Start.y - line2Start.y;
+		b = line1Start.x - line2Start.x;
+
+		numerator1 = ( (line2End.x - line2Start.x ) * a ) - ( (line2End.y - line2Start.y ) * b );
+		numerator2 = ( (line1End.x - line1Start.x ) * a ) - ( (line1End.y - line1Start.y ) * b );
+
+		a = numerator1 / denominator;
+		b = numerator2 / denominator;
+
+		x = line1Start.x + ( a * (line1End.x - line1Start.x ));
+		y = line1Start.y + ( a * (line1End.y - line1Start.y ));
+
+		return v( x, y, 0 );
+
+	}
+
+////////////////
+
+	function drawArcs2 ( pt1, pt2, pt3 ){
+		var radius = 10;
+		var thickness = 20;
+
+		var material = new THREE.MeshNormalMaterial();
+
+//		pt1 = v( 60, 50, 0 );
+//		pt2 = v( 0, 0, 0 );
+//		pt3 = v( 50, 0, 0 );
+
+		p = pt3.clone().sub( pt1 );
+		a1 = Math.atan2( p.y, p.x ) + Math.PI / 2;
+
+		p = pt2.clone().sub( pt1 );
+		a2 = Math.atan2( p.y, p.x ) - Math.PI / 2;
+
+		p = pt1.clone().sub( pt2 );
+		a3 = Math.atan2( p.y, p.x ) + Math.PI / 2;
+
+		p = pt3.clone().sub( pt2 );
+		a4 = Math.atan2( p.y, p.x ) - Math.PI / 2;
+
+		path = new THREE.Path();
+
+		path.absarc( pt1.x, pt1.y, radius, a1, a2, false );
+
+		path.absarc( pt2.x, pt2.y, radius, a3, a4, false );
+
+		path.absarc( pt3.x, pt3.y, radius, a4, a1, false );
+
+		var geometry = path.createSpacedPointsGeometry( 100 );
+
+		var shape = new THREE.Shape( geometry.vertices );
+
+		var geometry = shape.extrude( { amount: thickness, bevelEnabled: false} );
+
+		mesh = new THREE.Mesh( geometry, material );
+		mesh.position.z = -10;
+
+		leg.add( mesh );
+
+		edges = new THREE.EdgesHelper( mesh, 0x333333 );
+		leg.add( edges );
+
+	}
+
+
+
+	function li( x1, y1, x2, y2 ) {
+
+		var px1 = x1 || 0;
+		var py1 = y1 || 0;
+
+		var px2 = x2 || 0;
+		var py2 = y2 || 0;
+
+		var geometry = new THREE.Geometry();
+		geometry.vertices = [ v( px1, py1, 0 ), v( px2, py2, 0 ) ];
+		var material = new THREE.LineBasicMaterial( { color: 'blue' } );
+		line = new THREE.Line( geometry, material );
+		return line;
+
+	}
+
+	function intersectionTwoLines( line1, line2 ) {
+
+			line1Start = line1.geometry.vertices[ 0 ];
+			line1End = line1.geometry.vertices[ 1 ];
+
+			line2Start = line2.geometry.vertices[ 0 ];
+			line2End = line2.geometry.vertices[ 1 ];
+
+			denominator = ( (line2End.y - line2Start.y ) * ( line1End.x - line1Start.x ) ) 
+				- ( ( line2End.x - line2Start.x ) * ( line1End.y - line1Start.y ) );
+
+//console.log( denominator  );
+
+			if (denominator == 0) {
+
+console.log( 'not' );
+				return;
+
+			}
+
+			a = line1Start.y - line2Start.y;
+			b = line1Start.x - line2Start.x;
+
+			numerator1 = ( (line2End.x - line2Start.x ) * a ) - ( (line2End.y - line2Start.y ) * b );
+			numerator2 = ( (line1End.x - line1Start.x ) * a ) - ( (line1End.y - line1Start.y ) * b );
+
+			a = numerator1 / denominator;
+			b = numerator2 / denominator;
+
+			x = line1Start.x + ( a * (line1End.x - line1Start.x ));
+			y = line1Start.y + ( a * (line1End.y - line1Start.y ));
+
+//console.log( x, y );
+
+//			x = line2Start.x + (b * ( line2End.x - line2Start.x ));
+//			y = line2Start.y + (b * ( line2End.y - line2Start.y ));
+//console.log( x, y );
+
+			return v( x, y, 0 );
+
+	}
+
+	function v( x, y, z ){ return new THREE.Vector3( x, y, z ); }
+
+	function onWindowResize() {
+
+		camera.aspect = window.innerWidth / window.innerHeight;
+		camera.updateProjectionMatrix();
+
+		renderer.setSize( window.innerWidth, window.innerHeight );
+
+	}
+
+	function animate() {
+
+		requestAnimationFrame( animate );
+		controls.update();
+		stats.update();
+		renderer.render( scene, camera );
+
+	}
+
+</script>
+</body>
+</html>

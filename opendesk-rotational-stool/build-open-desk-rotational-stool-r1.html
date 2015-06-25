@@ -1,0 +1,666 @@
+<!doctype html>
+<html lang=en >
+<head>
+<title>OpenDesk Rotational Stool R1</title>
+<meta charset=utf-8 />
+<meta name=viewport content='width=device-width,user-scalable=no,minimum-scale=1.0,maximum-scale=1.0' />
+</head>
+<body>
+<script src=http://mrdoob.github.io/three.js/build/three.min.js ></script>
+<script src=http://mrdoob.github.io/three.js/examples/js/controls/OrbitControls.js ></script>
+<script src=http://mrdoob.github.com/three.js/examples/js/libs/tween.min.js ></script>
+<script src=http://mrdoob.github.io/three.js/examples/js/libs/stats.min.js ></script>
+<script>
+
+	var width = 240;
+	var height = 360;
+	var thickness = 20;
+
+	var tab = 150;
+
+	var cutDepth = 6;
+	var cutWidth = 10;
+
+	var stool1;
+	var stool2;
+	var edges;
+	var originMarker;
+	var particleMaterial;
+
+	var seatPath;
+	var legPath;
+
+	var components = [];
+	var pi = Math.PI;
+
+	var css, info, stats, renderer, scene, camera, controls;
+	var geometry, material, mesh;
+
+	var raycaster;
+	var mouse;
+
+	init();
+	animate();
+
+	function init() {
+
+		css = document.head.appendChild( document.createElement('style') );
+		css.innerHTML ='body { font: 600 12pt monospace; margin: 0; overflow: hidden; }' +
+			'h3 { margin: 0; }' +
+			'#i {text-decoration: none; }' +
+		'';
+
+		info = document.body.appendChild( document.createElement( 'div' ) );
+		info.style.cssText = 'background-color: white; margin: 0 5px; max-width: 220px; opacity: 0.7; position: absolute; ';
+		info.innerHTML = '<h3><a href="" >' + document.title + '</a> - ' +
+			'<a id=i href=http://theo-armour.github.io/theo-armour.testing/display-open-desk-rotational-stool/ >&#x24D8;</a>' +
+			'</h3>' +
+//			'<p>Building the Step Up using parameterized functions for each component</p>' +
+//			'<p>2015-05-04 ~ 2015-05-13 ~ WIP with many issues</p>' +
+			'<div><small>Touch any component</small></div>' +
+			'<div><button onclick=returnAllToStartTween(); >Disassemble</button> ' +
+			'<button onclick=assembleQuicklyTween(); >Assemble</button></div>' +
+			'<p><input type=range id=inpStretch min=0 max=50 step=1 value=0 onchange=setExplodeStructure(); />Explode</p>' +
+			'<hr>' +
+			'<p><input type=range id=inpThickness min=5 max=39 step=1 value=' + thickness + ' onchange=buildStool1(); />Thickness</p>' +
+			'<p><input type=range id=inpWidth min=210 max=315 step=1 value=' + width + ' onchange=buildStool1(); />Width</p>' +
+			'<p><input type=range id=inpTab min=130 max=180 step=1 value=' + tab + ' onchange=buildStool1(); />Tab</p>' +
+			'<p><input type=range id=inpHeight min=200 max=500 step=1 value=' + height + ' onchange=buildStool1(); />Height</p>' +
+			'<div><button onclick=printSVG(); >Print SVG</button> ' +
+			'<div id=msg1 ></div>' +
+		'';
+
+		stats = new Stats();
+		stats.domElement.style.cssText = 'position: absolute; right: 0; top: 0; z-index: 100; ';
+		document.body.appendChild( stats.domElement );
+
+		renderer = new THREE.WebGLRenderer( { alpha: 1, antialias: true, clearColor: 0xffffff }  );
+		renderer.setSize( window.innerWidth, window.innerHeight );
+		document.body.appendChild( renderer.domElement );
+
+		camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
+		camera.position.set( 1000, 900, 1000 );
+
+		controls = new THREE.OrbitControls( camera, renderer.domElement );
+
+		scene = new THREE.Scene();
+
+// ground box
+		geometry = new THREE.BoxGeometry( 500, 20, 500 );
+		material = new THREE.MeshNormalMaterial();
+		mesh = new THREE.Mesh( geometry, material );
+		mesh.position.set( 0, -300, 0 );
+//		scene.add( mesh );
+
+		mesh = new THREE.GridHelper( 250, 10 );
+		mesh.position.set( 0, -289, 0 );
+//		scene.add( mesh );
+
+// axes
+		var axisHelper = new THREE.AxisHelper( 1000 );
+		scene.add( axisHelper );
+
+// Origin Marker
+		geometry = new THREE.SphereGeometry( 5 );
+		material = new THREE.MeshNormalMaterial();
+		originMarker = new THREE.Mesh( geometry, material );
+//		scene.add( mesh );
+
+		particleMaterial = new THREE.SpriteMaterial( {
+
+			color: 0xff0000,
+
+		} );
+
+		raycaster = new THREE.Raycaster();
+		mouse = new THREE.Vector2();
+
+		renderer.domElement.addEventListener( 'mousedown', onDocumentMouseDown, false );
+		renderer.domElement.addEventListener( 'touchstart', onDocumentTouchStart, false ); // for mobile
+
+		buildStool1();
+
+		window.addEventListener( 'resize', onWindowResize, false );
+
+	}
+
+	function onWindowResize() {
+
+		camera.aspect = window.innerWidth / window.innerHeight;
+		camera.updateProjectionMatrix();
+
+		renderer.setSize( window.innerWidth, window.innerHeight );
+
+	}
+
+	function buildStool1() {
+
+		scene.remove( stool1 );
+		scene.remove( edges );
+
+		components = [];
+
+		inpWidth.title = width = parseFloat( inpWidth.value );
+		inpThickness.title = thickness = parseFloat( inpThickness.value );
+		inpTab.title = tab = parseFloat( inpTab.value );
+		inpHeight.title = height = parseFloat( inpHeight.value );
+
+		stool1 = new THREE.Object3D();
+		edges = new THREE.Object3D();
+
+		seat1 = buildSeat1();
+//		seat1.position.set( -350, 200, -500 );
+//		seat1.position.set( thickness, height, 0 );
+//		seat1.rotation.x = pi / 2;
+//		seat1.add( originMarker.clone() );
+
+		seat1.position.set( thickness, - 2 * width - 20, 0 );
+		seat1.userData.startPosition = seat1.position.clone();
+		seat1.userData.endPosition = v( thickness, height, 100 );
+
+		seat1.rotation.set( 0, 0, 0 );
+		seat1.userData.startRotation = seat1.rotation.clone();;
+		seat1.userData.endRotation = v( pi / 2, 0, 0 );
+
+		seat1.userData.index = 1;
+		components.push( seat1 );
+		stool1.add( seat1 );
+
+		leg1 = buildLeg();
+
+		leg1.position.set( height, - width, 0 );
+		leg1.userData.startPosition = leg1.position.clone();
+		leg1.userData.endPosition = v( 0, 0, 100 );
+
+		leg1.rotation.set( 0, 0, pi / 2 );
+		leg1.userData.startRotation = leg1.rotation.clone();
+		leg1.userData.endRotation = v( 0, 0, 0 );
+
+		leg1.userData.index = 2;
+		components.push( leg1 );
+		stool1.add( leg1 );
+
+		leg2 = buildLeg();
+
+//		leg2.rotation.y = pi / 2;
+//		leg2.position.set( 0, 0, width );
+//		leg2.add( originMarker.clone() );
+
+		leg2.position.set( 0, 0.5 * width, 0 );
+		leg2.userData.startPosition = leg2.position.clone();
+		leg2.userData.endPosition = v( 0, 0, 100 + width );
+
+		leg2.rotation.set( 0, 0, - pi / 2 );
+		leg2.userData.startRotation = leg2.rotation.clone();
+		leg2.userData.endRotation = v( 0, pi / 2, 0 );
+
+		leg2.userData.index = 3;
+		components.push( leg2 );
+		stool1.add( leg2 );
+
+		leg3 = buildLeg();
+
+//		leg3.rotation.y =  pi;
+//		leg3.position.set( width, 0, width );
+//		leg3.add( originMarker.clone() );
+
+		leg3.position.set( height, 0.5 * ( width + 20 ), 0 );
+		leg3.userData.startPosition = leg3.position.clone();
+		leg3.userData.endPosition = v( width, 0, 100 + width );
+
+		leg3.rotation.set( 0, 0, pi / 2 );
+		leg3.userData.startRotation = leg3.rotation.clone();
+		leg3.userData.endRotation = v( 0, pi, 0 );
+
+		leg3.userData.index = 4;
+		components.push( leg3 );
+		stool1.add( leg3 );
+
+		leg4 = buildLeg();
+
+//		leg4.rotation.y =  - pi / 2;
+//		leg4.position.set( width, 0, 0 );
+//		leg4.add( originMarker.clone() );
+
+		leg4.position.set( 0, 2 * width, 0 );
+		leg4.userData.startPosition = leg4.position.clone();
+		leg4.userData.endPosition = v( width, 0, 100 );
+
+		leg4.rotation.set( 0, 0, - pi / 2 );
+		leg4.userData.startRotation = leg4.rotation.clone();
+		leg4.userData.endRotation = v( 0, -pi / 2, 0 );
+
+		leg4.userData.index = 5;
+		components.push( leg4 );
+		stool1.add( leg4 );
+
+		scene.add( stool1 );
+		scene.add( edges );
+
+	}
+
+	function buildLeg() {
+
+		var leg; // = new THREE.Object3D();
+
+		var mid = width - tab - thickness;
+
+		legPath = [ mid, height - tab - cutWidth, width - mid - thickness, tab - mid,
+			-cutDepth, cutWidth, thickness + cutDepth, mid, // max x and y
+			-tab, - thickness - cutDepth, - cutWidth, cutDepth, - mid + cutWidth, -mid + thickness + cutWidth, cutDepth,
+			-cutWidth, -thickness - cutDepth
+
+		];
+
+		var boundary = buildVerticesBySingles( legPath );
+
+		leg = drawPolyline( boundary, 0 );
+
+		return leg;
+
+
+	}
+
+	function buildSeat1() {
+
+		var seat;
+
+		var mid = width - tab - thickness;
+
+		seatPath = [ mid, thickness + cutDepth, cutWidth, -cutDepth, tab - cutWidth, mid, -thickness - cutDepth, cutWidth, cutDepth, tab - cutWidth,
+			-mid, -thickness - cutDepth, - cutWidth, cutDepth, -tab + cutWidth, -mid, thickness + cutDepth, -cutWidth, -cutDepth
+
+		];
+
+		var boundary = buildVerticesBySingles( seatPath );
+
+		holes = [];
+		holes.push( drawCenterHole(  { x: mid, y: ( mid + thickness ) } ) );
+
+//		seat.add( drawPolyline( boundary, { holes: holes } ) );
+//		seat.add( originMarker.clone() );
+
+		seat = drawPolyline( boundary, { holes: holes } );
+		return seat;
+
+
+	}
+
+	function drawCenterHole( parameters ) {
+
+		var mid = width - tab - thickness;
+
+		var side = width - ( mid + mid + thickness + thickness );
+
+		path = [ side, side, -side, -side ];
+
+		vertices = buildVerticesBySingles( path, parameters );
+
+		return vertices;
+
+	}
+
+	function buildVerticesBySingles( path, parameters ) {
+
+		var p = parameters || {};
+		var x = p.x ? p.x : 0;
+		var y = p.y ? p.y : 0;
+		var vertices = [  v( x, y ) ];
+
+		for ( var i = 0; i < path.length; ) {
+
+			x += path[ i++ ];
+			vertices.push( v( x, y ) );
+
+			y += path[ i++ ];
+			vertices.push( v( x, y ) )
+
+		}
+
+		return vertices;
+
+	}
+
+	function buildVerticesByPairs( path, parameters ) {
+
+		var p = parameters ? parameters : {};
+		var x = p.x ? p.x : 0;
+		var y = p.y ? p.y : 0;
+		var vertices = [];
+
+		for ( var i = 0; i < path.length; i++ ) {
+
+			x += path[ i ][ 0 ];
+			y += path[ i ][ 1 ];
+
+			vertices.push( v( x, y ) )
+
+		}
+
+		return vertices;
+
+	}
+
+
+	function drawPolyline( vertices, parameters ) {
+
+		var parameters = parameters || {} ;
+
+		px = parameters.px ? parameters.px : 0;
+		py = parameters.py ? parameters.py : 0;
+		pz = parameters.pz ? parameters.pz : 0;
+
+		rx = parameters.rx ? parameters.rx : 0;
+		ry = parameters.ry ? parameters.ry : 0;
+		rz = parameters.rz ? parameters.rz : 0;
+
+		holes = parameters.holes ? parameters.holes : 0;
+
+		var material = new THREE.MeshNormalMaterial();
+
+		var shape = new THREE.Shape();
+		shape.fromPoints( vertices );
+
+		for ( var i = 0; i < holes.length; i++ ) {
+
+			var holePath = new THREE.Path();
+			holePath.fromPoints( holes[ i ] );
+			shape.holes.push( holePath );
+
+		}
+
+		var geometry = shape.extrude( { amount: thickness, bevelEnabled: false} );
+		geometry.applyMatrix( new THREE.Matrix4().makeTranslation( px, py, pz ) );
+
+		geometry.applyMatrix( new THREE.Matrix4().makeRotationX( rx ) );
+		geometry.applyMatrix( new THREE.Matrix4().makeRotationY( ry ) );
+		geometry.applyMatrix( new THREE.Matrix4().makeRotationZ( rz ) );
+
+		mesh = new THREE.Mesh( geometry, material );
+
+		edge = new THREE.EdgesHelper( mesh, 0x333333 );
+		edges.add( edge );
+
+		return mesh;
+
+	}
+
+	function printSVG() {
+
+		var x = 0;
+		var y = 0;
+		var offsetX = 0
+		vertices = '' + offsetX + ',0 ';
+
+		for ( var i = 0; i < seatPath.length; ) {
+
+			x += seatPath[ i++ ];
+			vertices += '' + ( offsetX + x ) + ',' + y + ' ';
+
+			y += seatPath[ i++ ];
+			vertices += '' + ( offsetX + x ) + ',' + y + ' ';
+
+		}
+
+		vertices += '' + offsetX + ',0 ';
+
+
+		x = 0;
+		y = 0;
+		var offsetX = 0;
+		var offsetY = 0;
+
+		vertices2 = '' + offsetX + ',' + offsetY + ' ';
+
+		for ( var i = 0; i < legPath.length; ) {
+
+			x += legPath[ i++ ];
+			vertices2 += '' + ( offsetX + x ) + ',' + ( offsetY + y ) + ' ';
+
+			y += legPath[ i++ ];
+			vertices2 += '' + ( offsetX + x ) + ',' + ( offsetY +  y ) + ' ';
+
+		}
+
+		vertices2 += '' + offsetX + ',' + offsetY + '';
+
+		var data =
+			'<svg width=660 height=800 >' +
+				'<rect x=45 y=45 width=450 height=450 stroke=black stroke-width=0.5 fill=white />' +
+//				'<rect width=675 height=900 stroke=black stroke-width=0.5 fill=white fill-opacity=0.0 />' +
+			'</svg>';
+
+		var data =
+			'<svg width=650 height=800 >' +
+				'<polygon transform="translate(390,0)" points="' + vertices + '" stroke=black stroke-width=0.5 fill=white fill-opacity=0.0 />' +
+				'<polygon transform="translate(360,0) rotate(90)" points="' + vertices2 + '" stroke=black stroke-width=0.5 fill=white fill-opacity=0.0 />' +
+				'<polygon transform="translate(0,350) rotate(-90)" points="' + vertices2 + '" stroke=black stroke-width=0.5 fill=white fill-opacity=0.0 />' +
+				'<polygon transform="translate( 360, 380) rotate(90)" points="' + vertices2 + '" stroke=black stroke-width=0.5 fill=white fill-opacity=0.0 />' +
+				'<polygon transform="translate( 0,750) rotate(-90)" points="' + vertices2 + '" stroke=black stroke-width=0.5 fill=white fill-opacity=0.0 />' +
+
+			'</svg>';
+
+
+		window.open( 'data:text/html,' + encodeURIComponent( data ) );
+
+	}
+
+
+	function onDocumentTouchStart( event ) {
+
+		event.preventDefault();
+
+		event.clientX = event.touches[0].clientX;
+		event.clientY = event.touches[0].clientY;
+		onDocumentMouseDown( event );
+
+	}
+
+	function onDocumentMouseDown( event ) {
+
+		event.preventDefault();
+
+		mouse.x = ( event.clientX / renderer.domElement.width ) * 2 - 1;
+		mouse.y = - ( event.clientY / renderer.domElement.height ) * 2 + 1;
+
+		raycaster.setFromCamera( mouse, camera );
+
+		var intersects = raycaster.intersectObjects( components );
+
+		if ( intersects.length > 0 ) {
+
+			intersected = intersects[ 0 ].object;
+
+			verts = intersected.geometry.vertices;
+			dis = 1000000000;
+			ip = intersects[ 0 ].point;
+
+			for ( var i = 0; i < verts.length; i++ ) {
+
+				vert = verts[ i ].clone();
+				vert.applyMatrix4( intersected.matrixWorld );
+				d = vert.distanceTo( ip );
+				if ( d < dis ) {
+					dis = d;
+					pt = vert;
+				}
+
+			}
+
+			var particle = new THREE.Sprite( particleMaterial );
+
+			particle.position.copy( pt );
+			particle.scale.x = particle.scale.y = 1;
+			scene.add( particle );
+
+//			intersected.material.color.setHex( Math.random() * 0xffffff );
+
+//			headsUp.style.left = 50 + 0.5 * window.innerWidth + mouse.x * 0.5 * window.innerWidth + 'px';
+//			headsUp.style.top = -10 + 0.5 * window.innerHeight - mouse.y * 0.5 * window.innerHeight + 'px';
+//			headsUp.style.display = '';
+
+			msg1.innerHTML  = // '<h3 style="margin:0;" >Component Data Viewer</h3>' +
+				'<small>Three.js id:' + intersected.id + '<br>' +
+				'UUID:' + intersected.uuid + '<br>' +
+//				'Type: ' + intersected.type + '<br>' +
+				'index: ' + intersected.userData.index + '</small>' +
+//				'Point x: ' + intersects[ 0 ].point.x.toFixed(2) + ' y:' + intersects[ 0 ].point.y.toFixed(2) + ' z:' + intersects[ 0 ].point.z.toFixed(2) + '<br>' +
+//				'vertex x:' + pt.x.toFixed(2) + ' y:' + pt.y.toFixed(2) + ' z:' + pt.z.toFixed(2) + '<br>' +
+
+			'';
+
+			movRotTween( intersected );
+
+		} else {
+
+			intersected = null;
+
+//			headsUp.style.display = 'none';
+
+			document.body.style.cursor = 'auto';
+
+		}
+
+	}
+
+	function movRotTween( obj ) {
+
+		var tween = new TWEEN.Tween( obj.position );
+		var oData = obj.userData;
+
+		if ( obj.position.distanceTo( obj.userData.startPosition ) < 1 ) {
+
+			tween.to( {
+				x: oData.endPosition.x,
+				y: oData.endPosition.y,
+				z: oData.endPosition.z }, 2000 )
+
+			tween.easing( TWEEN.Easing.Elastic.Out).start();
+
+			new TWEEN.Tween( obj.rotation ).to( {
+				x: oData.endRotation.x,
+				y: oData.endRotation.y,
+				z: oData.endRotation.z }, 2000 )
+			.easing( TWEEN.Easing.Elastic.Out).start();
+
+		} else {
+
+			tween.to( {
+				x: oData.startPosition.x,
+				y: oData.startPosition.y,
+				z: oData.startPosition.z }, 2000 )
+
+			tween.easing( TWEEN.Easing.Elastic.Out).start();
+
+			new TWEEN.Tween( obj.rotation ).to( {
+				x: oData.startRotation.x,
+				y: oData.startRotation.y,
+				z: oData.startRotation.z }, 2000 )
+			.easing( TWEEN.Easing.Elastic.Out).start();
+
+		}
+	}
+
+	function returnAllToStartTween() {
+
+		for ( var i = 0; i < components.length; i++ ) {
+
+			obj = components[ i ];
+
+			var tween = new TWEEN.Tween( obj.position );
+			var oData = obj.userData;
+
+			if ( obj.position.distanceTo( obj.userData.startPosition ) != 0 ) {
+
+				tween.to( {
+					x: oData.startPosition.x,
+					y: oData.startPosition.y,
+					z: oData.startPosition.z }, 2000 )
+
+				tween.easing( TWEEN.Easing.Elastic.Out).start();
+
+				new TWEEN.Tween( obj.rotation ).to( {
+					x: oData.startRotation.x,
+					y: oData.startRotation.y,
+					z: oData.startRotation.z }, 2000 )
+				.easing( TWEEN.Easing.Elastic.Out).start();
+
+			}
+
+		}
+
+	}
+
+	function assembleQuicklyTween() {
+
+		for ( var i = 0; i < components.length; i++ ) {
+
+			obj = components[ i ];
+
+			var tween = new TWEEN.Tween( obj.position );
+			var oData = obj.userData;
+
+			if ( obj.position.distanceTo( obj.userData.endPosition ) != 0 ) {
+
+				tween.to( {
+					x: oData.endPosition.x,
+					y: oData.endPosition.y,
+					z: oData.endPosition.z }, 2000 )
+
+				tween.easing( TWEEN.Easing.Elastic.Out).start();
+
+				new TWEEN.Tween( obj.rotation ).to( {
+					x: oData.endRotation.x,
+					y: oData.endRotation.y,
+					z: oData.endRotation.z }, 2000 )
+				.easing( TWEEN.Easing.Elastic.Out).start();
+
+			}
+
+		}
+
+	}
+
+	function setExplodeStructure() {
+
+		assembleQuicklyTween();
+
+		s = 1 + parseFloat( inpStretch.value ) / 100;
+
+		cc = components;
+
+		for ( var i = 0; i < cc.length; i++ ) {
+/*
+			if ( !cc[ i ].positionStart ) {
+
+				cc[ i ].positionStart = cc[ i ].position.clone();
+
+			}
+*/
+			p = cc[ i ].userData.endPosition;
+
+			cc[ i ].position.set( s * p.x, s * p.y, s * p.z );
+
+//console.log(  'name', cc[ i ].name );
+
+		}
+
+	}
+
+
+	function v2( x, y ){ return new THREE.Vector2( x, y ); }
+	function v( x, y, z ){ return new THREE.Vector3( x, y, z ); }
+
+	function animate() {
+
+		requestAnimationFrame( animate );
+		controls.update();
+		stats.update();
+		TWEEN.update();
+		renderer.render( scene, camera );
+
+	}
+
+</script>
+</body>
+</html>

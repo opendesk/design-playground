@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang=en >
+<head>
+<title>display-wikihouse-dxf-reader-r1.html</title>
+<meta charset=utf-8 />
+<meta name=viewport content='width=device-width,user-scalable=no,minimum-scale=1.0,maximum-scale=1.0' />
+</head>
+<body>
+<script src=http://mrdoob.github.io/three.js/build/three.min.js ></script>
+<script src=http://mrdoob.github.io/three.js/examples/js/controls/OrbitControls.js ></script>
+<script src=http://mrdoob.github.io/three.js/examples/js/libs/stats.min.js ></script>
+<script>
+
+	var fileName = 'Rotational-Stools.Cutting-Files-small.dxf';
+	var xmlHttp;
+
+	var components = [];
+	var polylineIDs = [];
+
+	var raycaster;
+	var mouse;
+
+	var info, stats, renderer, scene, camera, controls;
+	var geometry, material, mesh;
+
+	init();
+	animate();
+
+	function init() {
+
+		var css = document.head.appendChild( document.createElement('style') );
+		css.innerHTML ='body { font: 600 12pt monospace; margin: 0; overflow: hidden; }' ;
+
+		var info = document.body.appendChild( document.createElement( 'div' ) );
+		info.style.cssText = 'margin: 20px; max-height: 900px; max-width: 300px; position: absolute; overflow: auto; ';
+		info.innerHTML = '<a href="" ><h1>' + document.title + '</h1></a>' +
+			'<p id=msg >This demo loads an AutoCAD 2007 formatted DXF files and displays the data<br>' +
+			'1. Nested and ready to be cut out - in blue. <br>' +
+			'2. Cut out and assembled - in white. <br>' +
+			'3. Flat shapes (at 0,0,0) ready for data extraction - in magenta</p>' +
+			'<p>Click on any of the assembled mallet components to see sample details.</p>' +
+			'<div id=msg1 ></div>' +
+			'<div id=msg2 >Extracted data:<br></div>' +
+		'';
+
+// Heads Up
+		headsUp = document.body.appendChild( document.createElement( 'div' ) );
+		headsUp.style.cssText = 'background-color: #ddd; border-radius: 8px; padding: 0 5px 10px 5px; opacity: 0.85; ' +
+			'position: absolute; left: 50px; text-align: left; z-index: 10;';
+
+		stats = new Stats();
+		stats.domElement.style.cssText = 'position: absolute; right: 0; top: 0; z-index: 100; ';
+		document.body.appendChild( stats.domElement );
+
+		renderer = new THREE.WebGLRenderer( { alpha: 1, antialias: true, clearColor: 0xffffff }  );
+		renderer.setSize( window.innerWidth, window.innerHeight );
+		document.body.appendChild( renderer.domElement );
+
+		camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 100000 );
+		camera.position.set( 2000, 2000, 2000 );
+
+		controls = new THREE.OrbitControls( camera, renderer.domElement );
+
+		scene = new THREE.Scene();
+
+// axes
+		var axisHelper = new THREE.AxisHelper( 2000 );
+		scene.add( axisHelper );
+
+		particleMaterial = new THREE.SpriteMaterial( { color: 0xff0000 } );
+
+		raycaster = new THREE.Raycaster();
+		mouse = new THREE.Vector2();
+
+		renderer.domElement.addEventListener( 'mousedown', onDocumentMouseDown, false );
+		renderer.domElement.addEventListener( 'touchstart', onDocumentTouchStart, false ); // for mobile
+
+		window.addEventListener( 'resize', onWindowResize, false );
+
+		requestFile( fileName );
+
+	}
+
+	function onWindowResize() {
+
+		camera.aspect = window.innerWidth / window.innerHeight;
+		camera.updateProjectionMatrix();
+
+		renderer.setSize( window.innerWidth, window.innerHeight );
+
+//		controls.handleResize();
+
+	}
+
+
+	function requestFile( fileName ) {
+
+		xmlHttp = new XMLHttpRequest();
+		xmlHttp.open( 'GET', fileName, true );
+		xmlHttp.onreadystatechange = getDXF;
+		xmlHttp.send( null );
+
+	}
+
+	var polylines = [];
+	var polyline = [];
+	var count = -1;
+
+	function getDXF() {
+
+		if ( xmlHttp.readyState !== 4  ) { 
+
+			msg1.innerHTML += '.';
+			return; 
+
+		}
+
+		text = xmlHttp.responseText;
+		var lines = text.split(/\r\n|\n/);
+
+
+		for ( var i = 0; i < lines.length; i++ ) {
+
+			var l = lines[ i ];
+
+
+			if ( l === 'LWPOLYLINE' ) {
+
+				polylines[ ++count ] = [];
+
+				polylineIDs.push( lines[ i + 2 ] )
+
+			} else if ( count > -1 && l === ' 10' ) {
+
+				polylines[ count ].push( v2( + lines[ i + 1] , + lines[ i + 3 ] ) ); // +  sign forces string to number
+
+			} else if ( count > 0 && l === ' 0' ) {
+
+				break;
+
+			}
+
+		}
+
+//console.log( polylines );
+
+		omissions = [ 24, 30, 31, 32, 47, 48, 49, 50 ];
+
+		for ( var i = 0; i < polylines.length ; i++ ) {
+
+			if ( omissions.indexOf( i ) === -1 ) { 
+
+				drawPolyline( i );
+
+				if ( i !== 22 ) { 
+
+					drawNormalizePolyline( i );
+
+					drawShapeData( i );
+
+				}
+
+			}
+		}
+
+
+		msg1.innerHTML = '<p>File loaded: ' +fileName + '<p>';
+
+	}
+
+	function drawPolyline( index ) {
+
+		var material = new THREE.MeshNormalMaterial();
+
+		var shape = new THREE.Shape();
+		shape.fromPoints( polylines[ index ] );
+
+		var geometry = shape.extrude( { amount: 18, bevelEnabled: false} );
+
+		mesh = new THREE.Mesh( geometry, material );
+
+		var z = index === 22 || index === 26 ? -320 : -300;
+		mesh.position.set( mesh.position.x - 40800, mesh.position.y - 27500, z );
+		mesh.userData.componentID = index;
+		scene.add( mesh );
+
+		edges = new THREE.EdgesHelper( mesh, 0x333333 );
+		scene.add( edges );
+
+		components.push( mesh );
+
+	}
+
+	function drawNormalizePolyline( index ) {
+
+		var material = new THREE.MeshBasicMaterial();
+
+		var shape = new THREE.Shape();
+		shape.fromPoints( polylines[ index ] );
+
+		geometry = shape.extrude( { amount: 20, bevelEnabled: false} );
+//		geometry.center();
+		geometry.computeBoundingBox();
+
+		min = geometry.boundingBox.min
+
+		geometry.applyMatrix( new THREE.Matrix4().makeTranslation( -min.x, -min.y , 0 ) );
+
+		mesh = new THREE.Mesh( geometry, material );
+		mesh.position.set ( 0, 0,  -100 - 25 * index );
+		mesh.userData.componentID = index;
+		scene.add( mesh );
+
+		edges = new THREE.EdgesHelper( mesh, 0x333333 );
+		scene.add( edges );
+
+//		components.push( mesh );
+
+	}
+
+
+	function drawShapeData( index ) {
+
+		var material = new THREE.MeshBasicMaterial( { color: 'magenta', side: 2 } )
+
+		var shape = new THREE.Shape();
+		shape.fromPoints( polylines[ index ] );
+		geometry = new THREE.ShapeGeometry( shape );
+
+		geometry.computeBoundingBox();
+		min = geometry.boundingBox.min
+		geometry.applyMatrix( new THREE.Matrix4().makeTranslation( -min.x, -min.y , 0 ) );
+
+		geometry.computeBoundingBox();
+
+		mesh = new THREE.Mesh( geometry, material );
+		scene.add( mesh );
+
+//console.log( geometry.boundingBox.max );
+		msg2.innerHTML += 'Component ' + index + ' - bounding box x:' + Math.round( geometry.boundingBox.max.x ) + ' y:' + Math.round( geometry.boundingBox.max.y ) + '<br>';
+		txt = '';
+		for ( var i = 0; i < geometry.vertices.length; i++ ) {
+
+			v = geometry.vertices[ i ];
+
+			txt += ( v.x ).toFixed( 1 ) + ',' + ( v.y ).toFixed( 1 ) + ' ';
+		}
+
+		msg2.innerHTML += txt + '<br>';
+
+	}
+
+
+	function onDocumentTouchStart( event ) {
+		
+		event.preventDefault();
+		
+		event.clientX = event.touches[0].clientX;
+		event.clientY = event.touches[0].clientY;
+		onDocumentMouseDown( event );
+
+	}
+
+	function onDocumentMouseDown( event ) {
+
+		event.preventDefault();
+
+		mouse.x = ( event.clientX / renderer.domElement.width ) * 2 - 1;
+		mouse.y = - ( event.clientY / renderer.domElement.height ) * 2 + 1;
+
+		raycaster.setFromCamera( mouse, camera );
+
+		var intersects = raycaster.intersectObjects( components );
+
+		if ( intersects.length > 0 ) {
+
+			intersected = intersects[ 0 ].object;
+//			intersected.material.color.setHex( Math.random() * 0xffffff );
+
+			verts = intersected.geometry.vertices;
+			dis = 1000000000;
+			ip = intersects[ 0 ].point;
+
+			for ( var i = 0; i < verts.length; i++ ) {
+
+				vert = verts[ i ].clone();
+				vert.applyMatrix4( intersected.matrixWorld );
+				d = vert.distanceTo( ip );
+				if ( d < dis ) {
+					dis = d;
+					pt = vert;
+				}
+
+			}
+
+			 particle = new THREE.Sprite( particleMaterial );
+
+			particle.position.copy( pt );
+			particle.scale.x = particle.scale.y = 20;
+			scene.add( particle );
+
+
+			headsUp.style.left = 50 + 0.5 * window.innerWidth + mouse.x * 0.5 * window.innerWidth + 'px';
+			headsUp.style.top = -10 + 0.5 * window.innerHeight - mouse.y * 0.5 * window.innerHeight + 'px';
+			headsUp.style.display = '';
+
+			headsUp.innerHTML  = '<h3 style="margin:0;" >Data Viewer</h3>' +
+				'componentID:' + intersected.userData.componentID + '<br>' +
+				'Polyline ID:' + polylineIDs[ intersected.userData.componentID ] + '<br>' +
+				'Three.js id:' + intersected.id + '<br>' +
+				'UUID:' + intersected.uuid + '<br>' +
+				'Type: ' + intersected.type + '<br>' +
+				'Point x: ' + intersects[ 0 ].point.x.toFixed(2) + ' y:' + intersects[ 0 ].point.y.toFixed(2) + ' z:' + intersects[ 0 ].point.z.toFixed(2) + '<br>' +
+				'vertex x:' + pt.x.toFixed(2) + ' y:' + pt.y.toFixed(2) + ' z:' + pt.z.toFixed(2) + '<br>' +
+
+			'';
+
+		} else {
+
+			intersected = null;
+
+			headsUp.style.display = 'none';
+
+			document.body.style.cursor = 'auto';
+
+		}
+
+	}
+
+
+	function v2( x, y ){ return new THREE.Vector2( x, y ); }
+
+	function animate() {
+
+		requestAnimationFrame( animate );
+		controls.update();
+		stats.update();
+		renderer.render( scene, camera );
+
+	}
+
+</script>
+</body>
+</html>
+
+
