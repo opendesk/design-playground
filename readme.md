@@ -15,7 +15,7 @@ OpenDesk Design Playground
 ### Mission  
 <!-- a statement of a rationale, applicable now as well as in the future -->
 
-* To enable OpenDesk projects to to be viewed, edited and created using a variety of free, open source software as well as innovative proprietary solutions
+* To enable OpenDesk projects to to be viewed, edited and created using a variety of [free, open source software]( https://en.wikipedia.org/wiki/Free_and_open-source_software ) as well as innovative proprietary solutions
 
 ### Vision  
 <!--  a descriptive picture of a desired future state -->
@@ -24,16 +24,23 @@ OpenDesk Design Playground
 
 ## Projects
 
-[Display atFab DXF files Demo]( http://opendesk.github.io/design-playground/display-atfab-dxf/latest/ ) ~ view several AtFAB DXF files in 3D  
+[Display atFab DXF files Demo]( http://opendesk.github.io/design-playground/display-atfab-dxf/latest/ ) ~ view several [AtFAB]( https://www.opendesk.cc/atfab ) DXF files in 3D  
 [Read Me]( http://opendesk.github.io/design-playground/display-atfab-dxf/ )
 
-[Half Sheet Table Demo]( http://opendesk.github.io/design-playground/opendesk-half-sheet-table/latest/ ) ~ highly parameterized complex geometry  
+[Half Sheet Table Demo]( http://opendesk.github.io/design-playground/opendesk-half-sheet-table/latest/ ) ~ view highly parameterized complex geometry  
 [Read Me]( http://opendesk.github.io/design-playground/opendesk-half-sheet-table/ )
 
-[Rotational Stool Demo]( http://opendesk.github.io/design-playground/opendesk-rotational-stool/latest/ ) ~  fully parameterized with assemble disassemble, simple geometry  
+[Rotational Stool Demo]( http://opendesk.github.io/design-playground/opendesk-rotational-stool/latest/ ) ~ view fully parameterized with assemble disassemble, simple geometry  
 [Read Me]( http://opendesk.github.io/design-playground/opendesk-rotational-stool/ )
 
+## Features
 
+The current collection of scripts are built using [Three.js]( http://threejs.org/ ). [Three.js]( https://en.wikipedia.org/wiki/Three.js ) is an open-source JavaScript library dedicated to building 3D apps on top of the WebGL built into modern browsers.
+By communicating directly with the GPU in your computer, WebGL apps are very fast. The Three.js library enable even entry level programmers to build highly interactive apps on top of WebGL.
+
+It is hope that in the future apps based on other technologies such as [OnShape]( https://www.onshape.com/ ) or [Grasshopper on Rhino]( http://www.grasshopper3d.com/ ) and others are added to this collection of tools.
+ 
+ 
 ## Contact
 
 opendesk-community@googlegroups.com	
@@ -54,3 +61,17 @@ The above copyright notice and this permission notice shall be included in all c
 
 The software is provided 'as is', without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose and noninfringement.
 In no event shall the authors or copyright holders be liable for any claim, damages or other liability, whether in an action of contract, tort or otherwise, arising from, out of or in connection with the software or the use or other dealings in the software.
+
+## Change Log
+
+2015-06-25 ~ Theo
+
+* Add OpenDesk AtFAB DXF viewer
+* Add DXF files
+* Update read me files
+
+
+2015-06-24 ~ Theo
+
+* Move files over from my repo to OpenDesk repos
+* Added to read me docs
