@@ -8,8 +8,8 @@ Because OpenDesk furniture is designed for digital fabrication, you may download
 
 OpenDesk Design Playground
 ===
-<span style=display:none; >[View as web page]( http://opendesk.github.io/design-playground "View file as a web page." ) </span>  
-
+<span style=display:none; >[View as web page]( http://opendesk.github.io/design-playground "View file as a web page." ) </span>
+<input type=button value='View file as source code on GitHub' onclick=window.location.href='https://github.com/opendesk/design-playground/tree/gh-pages'; />
 ## Concept
 
 ### Mission  
@@ -22,30 +22,28 @@ OpenDesk Design Playground
 
 * To help create new ways of visualizing, collaborating and improving OpenDesk projects 
 
-### Projects
+## Projects
 
-[Display atFab DXF files Demo]( http://opendesk.github.io/design-playground/display-atfab-dxf/latest/ )
-[Read Me]( http://opendesk.github.io/design-playground/display-atfab-dxf/ }
+[Display atFab DXF files Demo]( http://opendesk.github.io/design-playground/display-atfab-dxf/latest/ ) ~ view several AtFAB DXF files in 3D  
+[Read Me]( http://opendesk.github.io/design-playground/display-atfab-dxf/ )
 
-[Half Sheet Table Demo]( http://opendesk.github.io/design-playground/opendesk-half-sheet-table/latest/ )
-[Read Me]( http://opendesk.github.io/design-playground/opendesk-half-sheet-table/ }
+[Half Sheet Table Demo]( http://opendesk.github.io/design-playground/opendesk-half-sheet-table/latest/ ) ~ highly parameterized complex geometry  
+[Read Me]( http://opendesk.github.io/design-playground/opendesk-half-sheet-table/ )
 
-[Rotational Stool Demo]( http://opendesk.github.io/design-playground/opendesk-rotational-stool/latest/ )
-[Read Me]( http://opendesk.github.io/design-playground/opendesk-rotational-stool/ }
-
-<input type=button value='View file as source code on GitHub' onclick=window.location.href='https://github.com/opendesk/design-playground/tree/gh-pages'; />
+[Rotational Stool Demo]( http://opendesk.github.io/design-playground/opendesk-rotational-stool/latest/ ) ~  fully parameterized with assemble disassemble, simple geometry  
+[Read Me]( http://opendesk.github.io/design-playground/opendesk-rotational-stool/ )
 
 
-### Contact
+## Contact
 
 opendesk-community@googlegroups.com	
 
-###Copyright
+##Copyright
 
 Copyright © 2015 OpenDesk authors
 
 
-### License
+## License
 
 OpenDesk software is available under the [MIT License]( http://en.wikipedia.org/wiki/MIT_License) which states:
 
