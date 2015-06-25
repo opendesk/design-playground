@@ -17,7 +17,7 @@ OpenDesk Design Playground
 [Rotational Stool Demo]( http://opendesk.github.io/design-playground/opendesk-rotational-stool/latest/
 
 
-<input type=button value='View file as source code on GitHub' onclick=window.location.href='https://github.com/opendesk/design-playground/'; />
+<input type=button value='View file as source code on GitHub' onclick=window.location.href='https://github.com/opendesk/design-playground/tree/gh-pages'; />
 
 ###Copyright
 
