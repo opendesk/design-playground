@@ -24,10 +24,14 @@ OpenDesk Design Playground
 
 ### Projects
 
+[Display atFab DXF files Demo]( http://opendesk.github.io/design-playground/display-atfab-dxf/latest/ )
+[Read Me]( http://opendesk.github.io/design-playground/display-atfab-dxf/ }
+
 [Half Sheet Table Demo]( http://opendesk.github.io/design-playground/opendesk-half-sheet-table/latest/ )
+[Read Me]( http://opendesk.github.io/design-playground/opendesk-half-sheet-table/ }
 
 [Rotational Stool Demo]( http://opendesk.github.io/design-playground/opendesk-rotational-stool/latest/ )
-
+[Read Me]( http://opendesk.github.io/design-playground/opendesk-rotational-stool/ }
 
 <input type=button value='View file as source code on GitHub' onclick=window.location.href='https://github.com/opendesk/design-playground/tree/gh-pages'; />
 
