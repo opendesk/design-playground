@@ -8,9 +8,21 @@ Because OpenDesk furniture is designed for digital fabrication, you may download
 
 OpenDesk Design Playground
 ===
-
 <span style=display:none; >[View as web page]( http://opendesk.github.io/design-playground "View file as a web page." ) </span>  
 
+## Concept
+
+### Mission  
+<!-- a statement of a rationale, applicable now as well as in the future -->
+
+* To enable OpenDesk projects to to be viewed, edited and created using a variety of free, open source software as well as innovative proprietary solutions
+
+### Vision  
+<!--  a descriptive picture of a desired future state -->
+
+* To help create new ways of visualizing, collaborating and improving OpenDesk projects 
+
+### Projects
 
 [Half Sheet Table Demo]( http://opendesk.github.io/design-playground/opendesk-half-sheet-table/latest/ )
 
@@ -18,6 +30,11 @@ OpenDesk Design Playground
 
 
 <input type=button value='View file as source code on GitHub' onclick=window.location.href='https://github.com/opendesk/design-playground/tree/gh-pages'; />
+
+
+### Contact
+
+opendesk-community@googlegroups.com	
 
 ###Copyright
 
