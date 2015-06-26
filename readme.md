@@ -70,7 +70,13 @@ In no event shall the authors or copyright holders be liable for any claim, dama
 * Add DXF files
 * Update read me files
 
-
+OpenDesk designers each seem to have their own favorite way of creating DXF files. 
+Designers use their own layer naming conventions, their own scale units and even varying DXF revisions.
+Thus a different DXF reader will have to be built for each designer. 
+I have started with AtFAB because they have a simple format.
+The only issue with their method is that there is no indication that a polyline is a hole inside another polyline,
+so I am having t identify these manually.
+ 
 2015-06-24 ~ Theo
 
 * Move files over from my repo to OpenDesk repos
