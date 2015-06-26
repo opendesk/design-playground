@@ -27,7 +27,7 @@ Display AtFAB DXF
 
 [Display AtFAB DXF]( http://opendesk.github.io/design-playground/display-atfab-dxf/latest/ )
 
-
+Display OpenDesk designs by [AtFAB]( https://www.opendesk.cc/atfab ) by importing [DXF]( https://en.wikipedia.org/wiki/AutoCAD_DXF ) files.
 
 
 ## Contact
@@ -54,3 +54,6 @@ In no event shall the authors or copyright holders be liable for any claim, dama
 ## Change Log
 
 2015-06-25 ~ Theo
+
+* Projected created and files and folders added to Gitub
+* There are still several more AtFAB DXF files to be added

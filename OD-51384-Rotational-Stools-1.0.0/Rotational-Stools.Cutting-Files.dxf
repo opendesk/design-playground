@@ -3419,7 +3419,7 @@ LWPOLYLINE
 100
 AcDbEntity
   8
-CUT_THRU
+CUT_HOLE
 100
 AcDbPolyline
  90
@@ -3445,6 +3445,8 @@ AcDbPolyline
  20
 60.31307903428391
   0
+
+
 LWPOLYLINE
   5
 8C
@@ -3453,7 +3455,7 @@ LWPOLYLINE
 100
 AcDbEntity
   8
-CUT_THRU
+CUT_HOLE
 100
 AcDbPolyline
  90
@@ -3533,6 +3535,8 @@ AcDbPolyline
  42
 1.0
   0
+
+
 LWPOLYLINE
   5
 8D

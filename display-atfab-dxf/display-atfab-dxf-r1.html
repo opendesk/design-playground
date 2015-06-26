@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang=en >
 <head>
-<title>display dxf r1</title>
+<title>Display AtFAB DXF R1</title>
 <meta charset=utf-8 />
 <meta name=viewport content='width=device-width,user-scalable=no,minimum-scale=1.0,maximum-scale=1.0' />
 </head>
@@ -12,6 +12,14 @@
 <script>
 
 	var fileName = '../opendesk-rotational-stool/Rotational-Stools.Cutting-Files.dxf';
+
+	var fileNames = [
+		'../OD-51384-Rotational-Stools-1.0.0/Rotational-Stools.Cutting-Files.dxf',
+		'../OD-51382-Rotational-Table-1.0.0/Rotational-Table.Cutting-Files.dxf',
+		'../OD-51381-5-To-30-Minute-Chair-1.0.0/5-To-30-Minute-Chair.Cutting-Files.dxf',
+		'../OD-51383-One-To-Several-Table-1.0.0/One-To-Several-Table.Cutting-Files.dxf',
+		'../opendesk-rotational-stool/Rotational-Stools.Cutting-Files.dxf'
+	];
 	var thickness = 2;
 
 	var layer;
@@ -23,7 +31,6 @@
 	var polylinesCount = -1;
 
 	var holes = [];
-
 	var holesCount = -1;
 
 	var components;
@@ -48,10 +55,15 @@
 		var info = document.body.appendChild( document.createElement( 'div' ) );
 		info.style.cssText = 'margin: 20px; max-height: 900px; max-width: 300px; position: absolute; overflow: auto; ';
 		info.innerHTML = '<a href="" ><h1>' + document.title + '</h1></a>' +
+			'<p><a href=JavaScript:requestFile(fileNames[0]); >Rotational-Stools.Cutting-Files</a></p>' +
+			'<p><a href=JavaScript:requestFile(fileNames[1]); >Rotational-Table.Cutting-Files</a></p>' +
+			'<p><a href=JavaScript:requestFile(fileNames[2]); >5-To-30-Minute-Chair.Cutting-Files</a></p>' +
+			'<p><a href=JavaScript:requestFile(fileNames[3]); >One-To-Several-Table.Cutting-Files</a></p>' +
+
 			'<p><input type=file id=inpFile onchange=openFile(this); /></p>' +
-			'<p><button onclick=drawFramesUnique(); >Draw Unique Shapes Only</button></p>' +
-			'<p><button onclick=drawShapesWithHoles(); >Draw Shapes with Holes</button></p>' +
-			'<p><button onclick=drawPolylinesAndHoles(); >Draw Polylines and Holes</button></p>' +
+//			'<p><button onclick=drawFramesUnique(); >Draw Unique Shapes Only</button></p>' +
+//			'<p><button onclick=drawShapesWithHoles(); >Draw Shapes with Holes</button></p>' +
+//			'<p><button onclick=drawPolylinesAndHoles(); >Draw Polylines and Holes</button></p>' +
 //			'<p id=msg >This demo loads an AutoCAD 2007 formatted DXF files and displays the data<br>' +
 //			'1. Nested and ready to be cut out - in blue. <br>' +
 //			'2. Cut out and assembled - in white. <br>' +
@@ -112,7 +124,7 @@
 			msg1.innerHTML = that + '<br>name: ' + that.files[0].name + ' size: ' + that.files[0].size + 
 			' type: ' + that.files[0].type + ' modified: ' + that.files[0].lastModifiedDate;
 
-readDXF( data )
+			readDXF( data );
 
 		}
 
@@ -120,8 +132,8 @@ readDXF( data )
 
 	}
 
-	function requestFile( fileName ) {
-
+	function requestFile( fName ) {
+		fileName = fName;
 		xmlHttp = new XMLHttpRequest();
 		xmlHttp.open( 'GET', fileName, true );
 		xmlHttp.onreadystatechange = getDXF;
@@ -148,7 +160,12 @@ readDXF( data )
 //		text = xmlHttp.responseText;
 		lines = text.split(/\r\n|\n/);
 
-		var polyline;
+		polylines = [];
+		polylinesSearch = false;
+		polylinesCount = -1;
+
+		holes = [];
+		holesCount = -1;
 
 		for ( var i = 0; i < lines.length; i++ ) {
 
@@ -184,7 +201,7 @@ readDXF( data )
 
 					layer = lines[ i + 1 ];
 
-					if ( layer === 'CUT_THRU' || layer === '5_6mmTOOL_CUTTHROUGH_OUTSIDE' ) {
+					if ( layer === 'CUT_THRU' ) {
 
 						polylines[ ++polylinesCount ] = {};
 
@@ -198,7 +215,7 @@ readDXF( data )
 
 						polyline.vertices = [];
 
-					} else if ( layer === 'CUT_HOLE' || layer === '4_6mmTOOL_CUTTHROUGH_INSIDE'  ) {
+					} else if ( layer === 'CUT_HOLE'  ) {
 
 						holes[ ++holesCount ] = {};
 
@@ -214,7 +231,7 @@ readDXF( data )
 
 					}
 
-				} else if ( polylinesSearch === true && l === ' 10' && ( layer === 'CUT_THRU' || layer === 'CUT_HOLE' || layer === '5_6mmTOOL_CUTTHROUGH_OUTSIDE' || layer === '4_6mmTOOL_CUTTHROUGH_INSIDE' ) ) {
+				} else if ( polylinesSearch === true && l === ' 10' && ( layer === 'CUT_THRU' || layer === 'CUT_HOLE' ) ) {
 
 					polyline.vertices.push( v( + lines[ i + 1] , + lines[ i + 3 ], + lines[ i + 5 ] ) ); // +  sign forces string to number
 
@@ -228,53 +245,9 @@ readDXF( data )
 
 		}
 
-//		drawShapesWithHoles();
-
-//		drawFramesUnique();
-
-		drawPolylinesAndHoles();
+		drawShapesWithHoles();
 
 		msg1.innerHTML = '<p>File loaded: ' +fileName + '<p>';
-
-	}
-
-
-	function drawFramesUnique() {
-
-		uniquesBS = [];
-		uniques = [];
-
-		scene.remove( components );
-		components = new THREE.Object3D();
-
-		for ( var i = 0; i < polylines.length; i++ ) {
-
-//			firstBB = new THREE.Box3().setFromPoints( polylines[ i ].vertices ).getBoundingSphere().radius.toFixed(0);
-
-			firstBB = new THREE.CurvePath().createGeometry( polylines[ i ].vertices );
-			firstBB.computeBoundingBox();
-			bb = firstBB.boundingBox;
-			item = (bb.max.x - bb.min.x).toFixed( 2 ) + ' ' + ( bb.max.y - bb.min.y ).toFixed( 2 );
-
-			if ( uniquesBS.indexOf( item ) === -1 ) {
-
-				uniquesBS.push( item );
-				uniques.push( polylines[ i ] );
-
-			}
-
-		}
-
-console.log( polylines.length );
-console.log( uniques.length );
-
-		for ( var i = 0; i < uniques.length; i++ ) {
-
-			drawPolyline( uniques, i, 0 );
-
-		}
-
-		scene.add( components );
 
 	}
 
@@ -285,6 +258,7 @@ console.log( uniques.length );
 		components = new THREE.Object3D();
 
 		material = new THREE.MeshNormalMaterial();
+		var plineHoles;
 
 		for ( var i = 0; i < polylines.length; i++ ) {
 
@@ -304,8 +278,6 @@ console.log( uniques.length );
 
 			}
 
-			componentsHoles.push( plineHoles );
-
 			var shape = new THREE.Shape();
 			shape.fromPoints( polylines[ i ].vertices );
 			var holePath;
@@ -324,7 +296,16 @@ console.log( uniques.length );
 			mesh.userData.componentID = i;
 			mesh.userData.id = polylines[ i ].id;
 			mesh.userData.layer = polylines[ i ].layer;
-			mesh.position.set( -15000, -30000, 0 );
+
+			if ( fileName === '../OD-51383-One-To-Several-Table-1.0.0/One-To-Several-Table.Cutting-Files.dxf' ) {
+
+				mesh.position.set( -200, -70, 0 );
+
+			} else {
+
+				mesh.position.set( -50, -70, 0 );
+
+			}
 
 			components.add( mesh );
 
@@ -334,47 +315,6 @@ console.log( uniques.length );
 		}
 
 		scene.add( components );
-//console.log( componentsHoles );
-
-	}
-
-	function drawPolylinesAndHoles() {
-
-		scene.remove( components );
-		components = new THREE.Object3D();
-
-		for ( var i = 0; i < polylines.length; i++ ) {
-
-			drawPolyline( polylines, i, 0 );
-
-		}
-
-		for ( var i = 0; i < holes.length; i++ ) {
-
-				drawPolyline( holes, i, 200 );
-
-		}
-
-		scene.add( components );
-
-	}
-
-
-	function drawPolyline( objArray, index, z ) {
-
-		var shape = new THREE.Shape();
-		shape.fromPoints( objArray[ index ].vertices );
-//console.log(  objArray[ index ].vertices  );
-		var geometry = shape.extrude( { amount: thickness, bevelEnabled: false } );
-
-		mesh = new THREE.Mesh( geometry, material );
-//		mesh.position.set( -15000, -30000, z );
-		mesh.userData.componentID = index;
-		mesh.userData.layer = objArray[ index ].layer;
-		components.add( mesh );
-
-		edges = new THREE.EdgesHelper( mesh, 0x333333 );
-		components.add( edges );
 
 	}
 
@@ -397,7 +337,7 @@ console.log( uniques.length );
 
 		raycaster.setFromCamera( mouse, camera );
 
-		var intersects = raycaster.intersectObjects( components );
+		var intersects = raycaster.intersectObjects( components.children );
 
 		if ( intersects.length > 0 ) {
 
@@ -423,7 +363,7 @@ console.log( uniques.length );
 			 particle = new THREE.Sprite( particleMaterial );
 
 			particle.position.copy( pt );
-			particle.scale.x = particle.scale.y = 20;
+			particle.scale.x = particle.scale.y = 0.5;
 			scene.add( particle );
 
 
