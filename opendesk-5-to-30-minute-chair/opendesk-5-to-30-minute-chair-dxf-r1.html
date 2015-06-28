@@ -49,30 +49,18 @@
 
 	function init() {
 
-		var css = document.head.appendChild( document.createElement('style') );
-		css.innerHTML ='body { font: 600 12pt monospace; margin: 0; overflow: hidden; }' ;
+		css = document.head.appendChild( document.createElement('style') );
+		css.innerHTML ='body { font: 600 12pt monospace; margin: 0; overflow: hidden; }' +
+			'#i {text-decoration: none; }' +
+		'';
 
-		var info = document.body.appendChild( document.createElement( 'div' ) );
-		info.style.cssText = 'margin: 20px; max-height: 900px; max-width: 300px; position: absolute; overflow: auto; ';
-		info.innerHTML = '<a href="" ><h1>' + document.title + '</h1></a>' +
+		info = document.body.appendChild( document.createElement( 'div' ) );
+		info.style.cssText = ' margin: 0 10px; max-height: ' + (window.innerHeight - 50) + 'px; max-width: 270px; overflow: auto; position: absolute; ';
+		info.innerHTML = '<h3 style=margin:0; ><a href="" >' + document.title + '</a> - ' +
+			'<a id=i href=http://opendesk.github.io/design-playground/ >&#x24D8;</a>' +
 			'<p><button onclick=assembleQuicklyTween(); >Assemble</button> ' +
 			'<button onclick=returnAllToStartTween(); >Disassemble</button></p>' +
-/*
-			'<p><a href=JavaScript:drawRotationalStool(); >Rotational-Stools.Cutting-Files</a></p>' +
-			'<p><a href=JavaScript:drawRotationalTable(); >Rotational-Table.Cutting-Files</a></p>' +
-			'<p><a href=JavaScript:drawFiveTo30MinuteChair(); >5-To-30-Minute-Chair.Cutting-Files</a></p>' +
-			'<p><a href=JavaScript:drawOneToSeveralTables(); >One-To-Several-Table.Cutting-Files</a></p>' +
-			'<p><input type=file id=inpFile onchange=openFile(this); /></p>' +
-*/
-
-//			'<p><button onclick=drawFramesUnique(); >Draw Unique Shapes Only</button></p>' +
-//			'<p><button onclick=drawShapesWithHoles(); >Draw Shapes with Holes</button></p>' +
-//			'<p><button onclick=drawPolylinesAndHoles(); >Draw Polylines and Holes</button></p>' +
-//			'<p id=msg >This demo loads an AutoCAD 2007 formatted DXF files and displays the data<br>' +
-//			'1. Nested and ready to be cut out - in blue. <br>' +
-//			'2. Cut out and assembled - in white. <br>' +
-//			'3. Flat shapes (at 0,0,0) ready for data extraction - in magenta</p>' +
-//			'<p>Click on any of the assembled mallet components to see sample details.</p>' +
+			'<p>Click objects to assemble/disassemble. Only chair 1 works.</p>' +
 			'<div id=msg1 ></div>' +
 			'<div id=msg2 >Extracted data:<br></div>' +
 		'';
@@ -214,7 +202,7 @@
 
 		drawShapesWithHoles();
 
-		msg1.innerHTML = '<p>File loaded: ' +fileName + '<p>';
+		msg1.innerHTML = '<p><small>File loaded: ' + fileName + '</small><p>';
 
 	}
 
@@ -260,7 +248,7 @@
 
 			mesh = new THREE.Mesh( geometry, material );
 			mesh.userData.polylineID = i;
-			mesh.userData.componentID = id;
+			mesh.userData.componentID = i
 			mesh.userData.dxfID = polylines[ i ].id;
 			mesh.userData.layer = polylines[ i ].layer;
 			mesh.userData.startLine = polylines[ i ].startLine;
@@ -271,8 +259,8 @@
 			edges = new THREE.EdgesHelper( mesh, 0x333333 );
 			fiveTo30MinuteChair.add( edges );
 
-			msg2.innerHTML += 'Component ' + id + '<br>' +
-				'bounding box x:' + ( geometry.boundingBox.max.x - geometry.boundingBox.min.x ).toFixed( 5 )  + ' y:' + ( geometry.boundingBox.max.y - geometry.boundingBox.min.y ).toFixed( 5 ) + '<br>';
+			msg2.innerHTML += '<small>Component ' + id + '<br>' +
+				'bbox x:' + ( geometry.boundingBox.max.x - geometry.boundingBox.min.x ).toFixed( 5 )  + ' y:' + ( geometry.boundingBox.max.y - geometry.boundingBox.min.y ).toFixed( 5 ) + '<br></small>';
 
 			id += 2;
 
@@ -417,7 +405,7 @@
 		var oData = obj.userData;
 
 		if ( obj.position.distanceTo( obj.userData.startPosition ) < 1 ) {
-console.log( obj );
+//console.log( obj );
 
 //fiveTo30MinuteChair.children[ 0 ].position.z = fiveTo30MinuteChair.children[ 0 ].userData.endPosition.z;
 

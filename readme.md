@@ -26,11 +26,23 @@ OpenDesk Design Playground
 ## DXF Projects
 Scripts that read 2D DXF files downloaded from opendesk.cc and transform the data into viewable 3D.
 
-[OpenDesk Rotational Table DXF]( http://opendesk.github.io/design-playground/opendesk-rotational-table/opendesk-rotational-table-dxf-r1.html )
+[OpenDesk 5 to 30 Minute Chair DXF]( http://opendesk.github.io/design-playground/opendesk-5-to-30-minute-chair/latest/ ) ~ assembled components positioned by algorithm - except for angled compoenents
 
+[OpenDesk One to Several Table DXF]( http://opendesk.github.io/design-playground/opendesk-one-to-several-table/latest/ ) ~ assembled components positioned by algorithm
+
+[OpenDesk Rotational Table DXF]( http://opendesk.github.io/design-playground/opendesk-rotational-table/latest/ ) ~ assembled components positioned, gasp!, by eye
 
 [Display atFab DXF files Demo]( http://opendesk.github.io/design-playground/display-atfab-dxf/latest/ ) ~ view several [AtFAB]( https://www.opendesk.cc/atfab ) DXF files in 3D  
 [Read Me]( http://opendesk.github.io/design-playground/display-atfab-dxf/ )
+
+### Roadmap
+
+* Add indication of the outline of the whole original plywood sheet
+* Output to SVG, STL, PDF, Three.j JSON  and over formats
+* Create pretty renderings
+* Obtain assembled positions from the original SketchUp files
+
+
 
 ## App Projects
 Scripts that attempt to recreate the OpenDesp projects by creating 3D models on-the-fly using code with user-entered parameters.
