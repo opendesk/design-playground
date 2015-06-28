@@ -15,7 +15,7 @@ OpenDesk Design Playground
 ### Mission  
 <!-- a statement of a rationale, applicable now as well as in the future -->
 
-* To enable OpenDesk projects to to be viewed, edited and created using a variety of [free, open source software]( https://en.wikipedia.org/wiki/Free_and_open-source_software ) as well as innovative proprietary solutions
+* To enable OpenDesk projects to be viewed, edited and created using a variety of [free, open source software]( https://en.wikipedia.org/wiki/Free_and_open-source_software ) as well as innovative proprietary solutions
 
 ### Vision  
 <!--  a descriptive picture of a desired future state -->
@@ -32,11 +32,13 @@ Scripts that read 2D DXF files downloaded from opendesk.cc and transform the dat
 [Display atFab DXF files Demo]( http://opendesk.github.io/design-playground/display-atfab-dxf/latest/ ) ~ view several [AtFAB]( https://www.opendesk.cc/atfab ) DXF files in 3D  
 [Read Me]( http://opendesk.github.io/design-playground/display-atfab-dxf/ )
 
-### App Projects
+## App Projects
+Scripts that attempt to recreate the OpenDesp projects by creating 3D models on-the-fly using code with user-entered parameters.
+
 [Half Sheet Table Demo]( http://opendesk.github.io/design-playground/opendesk-half-sheet-table/latest/ ) ~ view highly parameterized complex geometry  
 [Read Me]( http://opendesk.github.io/design-playground/opendesk-half-sheet-table/ )
 
-[Rotational Stool Demo]( http://opendesk.github.io/design-playground/opendesk-rotational-stool/latest/ ) ~ view fully parameterized with assemble disassemble, simple geometry  
+[Rotational Stools Demo]( http://opendesk.github.io/design-playground/opendesk-rotational-stool/latest/ ) ~ view fully parameterized with assemble disassemble, simple geometry  
 [Read Me]( http://opendesk.github.io/design-playground/opendesk-rotational-stool/ )
 
 ## Features
