@@ -1,26 +1,20 @@
 <!doctype html>
 <html lang=en >
 <head>
-<title>Display AtFAB DXF R1</title>
+<title>OpenDesk 5 to 30 Minute Chair R1</title>
 <meta charset=utf-8 />
 <meta name=viewport content='width=device-width,user-scalable=no,minimum-scale=1.0,maximum-scale=1.0' />
 </head>
 <body>
 <script src=http://mrdoob.github.io/three.js/build/three.min.js ></script>
 <script src=http://mrdoob.github.io/three.js/examples/js/controls/OrbitControls.js ></script>
+<script src=http://mrdoob.github.com/three.js/examples/js/libs/tween.min.js ></script>
 <script src=http://mrdoob.github.io/three.js/examples/js/libs/stats.min.js ></script>
 <script>
 
-	var fileName = '../opendesk-rotational-stool/Rotational-Stools.Cutting-Files.dxf';
+	var fileName = '../OD-51381-5-To-30-Minute-Chair-1.0.0/5-To-30-Minute-Chair.Cutting-Files.dxf';
 
-	var fileNames = [
-		'../OD-51384-Rotational-Stools-1.0.0/Rotational-Stools.Cutting-Files.dxf',
-		'../OD-51382-Rotational-Table-1.0.0/Rotational-Table.Cutting-Files.dxf',
-		'../OD-51381-5-To-30-Minute-Chair-1.0.0/5-To-30-Minute-Chair.Cutting-Files.dxf',
-		'../OD-51383-One-To-Several-Table-1.0.0/One-To-Several-Table.Cutting-Files.dxf',
-		'../opendesk-rotational-stool/Rotational-Stools.Cutting-Files.dxf'
-	];
-	var thickness = 2;
+	var thickness = 0.75;
 
 	var layer;
 	var layers = [];
@@ -33,16 +27,17 @@
 	var holes;
 	var holesCount;
 
-	var rotationalStools;
-	var rotationalTable;
+
 	var fiveTo30MinuteChair;
-	var oneToSeveralTables;
 
 	var components;
 	var componentsHoles = [];
+	var pi = Math.PI;
 
 	var xmlHttp;
 
+	var originMarker;
+	var particleMaterial;
 	var raycaster;
 	var mouse;
 
@@ -60,12 +55,16 @@
 		var info = document.body.appendChild( document.createElement( 'div' ) );
 		info.style.cssText = 'margin: 20px; max-height: 900px; max-width: 300px; position: absolute; overflow: auto; ';
 		info.innerHTML = '<a href="" ><h1>' + document.title + '</h1></a>' +
+			'<p><button onclick=assembleQuicklyTween(); >Assemble</button> ' +
+			'<button onclick=returnAllToStartTween(); >Disassemble</button></p>' +
+/*
 			'<p><a href=JavaScript:drawRotationalStool(); >Rotational-Stools.Cutting-Files</a></p>' +
 			'<p><a href=JavaScript:drawRotationalTable(); >Rotational-Table.Cutting-Files</a></p>' +
 			'<p><a href=JavaScript:drawFiveTo30MinuteChair(); >5-To-30-Minute-Chair.Cutting-Files</a></p>' +
 			'<p><a href=JavaScript:drawOneToSeveralTables(); >One-To-Several-Table.Cutting-Files</a></p>' +
-
 			'<p><input type=file id=inpFile onchange=openFile(this); /></p>' +
+*/
+
 //			'<p><button onclick=drawFramesUnique(); >Draw Unique Shapes Only</button></p>' +
 //			'<p><button onclick=drawShapesWithHoles(); >Draw Shapes with Holes</button></p>' +
 //			'<p><button onclick=drawPolylinesAndHoles(); >Draw Polylines and Holes</button></p>' +
@@ -91,15 +90,15 @@
 		renderer.setSize( window.innerWidth, window.innerHeight );
 		document.body.appendChild( renderer.domElement );
 
-		camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 100000 );
-		camera.position.set( 100, 100, 100 );
+		camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 1000 );
+		camera.position.set( 85, 85, 85 );
 
 		controls = new THREE.OrbitControls( camera, renderer.domElement );
 
 		scene = new THREE.Scene();
 
 // axes
-		var axisHelper = new THREE.AxisHelper( 200 );
+		var axisHelper = new THREE.AxisHelper( 50 );
 		scene.add( axisHelper );
 
 		particleMaterial = new THREE.SpriteMaterial( { color: 0xff0000 } );
@@ -112,54 +111,14 @@
 
 		window.addEventListener( 'resize', onWindowResize, false );
 
-//		requestFile( fileName );
+		requestFile( fileName );
 
 	}
 
-	function drawRotationalStool() {
-
-		scene.remove( rotationalStools );
-		rotationalStools = new THREE.Object3D();
-
-		requestFile( fileNames[ 0 ], rotationalStools );
-
-	}
-
-	function drawRotationalTable() {
-
-		scene.remove( rotationalTable );
-		rotationalTable = new THREE.Object3D();
-
-		requestFile( fileNames[ 1 ], rotationalTable );
-
-		rotationalTable.setup = function() {
-
-			rotationalTable.children[0].position.z = 50;
-
-		}
-
-	}
-
-	function drawFiveTo30MinuteChair() {
+	function readDXF( text ) {
 
 		scene.remove( fiveTo30MinuteChair );
 		fiveTo30MinuteChair = new THREE.Object3D();
-
-		requestFile( fileNames[ 2 ], fiveTo30MinuteChair );
-
-	}
-
-
-	function drawOneToSeveralTables() {
-
-		scene.remove( oneToSeveralTables );
-		oneToSeveralTables = new THREE.Object3D();
-
-		requestFile( fileNames[ 3 ], oneToSeveralTables );
-
-	}
-
-	function readDXF( text, project ) {
 
 		lines = text.split(/\r\n|\n/);
 
@@ -253,16 +212,17 @@
 
 		}
 
-		drawShapesWithHoles( project );
+		drawShapesWithHoles();
 
 		msg1.innerHTML = '<p>File loaded: ' +fileName + '<p>';
 
 	}
 
 
-	function drawShapesWithHoles( project ) {
+	function drawShapesWithHoles() {
 
-		material = new THREE.MeshNormalMaterial();
+		material = new THREE.MeshNormalMaterial( { opacity: 0.7, transparent: true } );
+		var id = 0;
 		var plineHoles;
 
 		for ( var i = 0; i < polylines.length; i++ ) {
@@ -296,32 +256,78 @@
 			}
 
 			geometry = shape.extrude( { amount: thickness, bevelEnabled: false} );
+			geometry.computeBoundingBox();
 
 			mesh = new THREE.Mesh( geometry, material );
-			mesh.userData.componentID = i;
-			mesh.userData.id = polylines[ i ].id;
+			mesh.userData.polylineID = i;
+			mesh.userData.componentID = id;
+			mesh.userData.dxfID = polylines[ i ].id;
 			mesh.userData.layer = polylines[ i ].layer;
+			mesh.userData.startLine = polylines[ i ].startLine;
+			mesh.position.set( -100, -150, -50 );
 
-			if ( fileName === '../OD-51383-One-To-Several-Table-1.0.0/One-To-Several-Table.Cutting-Files.dxf' ) {
-
-				mesh.position.set( -200, -70, 0 );
-
-			} else {
-
-				mesh.position.set( -80, -70, 0 );
-
-			}
-
-			project.add( mesh );
+			fiveTo30MinuteChair.add( mesh );
 
 			edges = new THREE.EdgesHelper( mesh, 0x333333 );
-			project.add( edges );
+			fiveTo30MinuteChair.add( edges );
+
+			msg2.innerHTML += 'Component ' + id + '<br>' +
+				'bounding box x:' + ( geometry.boundingBox.max.x - geometry.boundingBox.min.x ).toFixed( 5 )  + ' y:' + ( geometry.boundingBox.max.y - geometry.boundingBox.min.y ).toFixed( 5 ) + '<br>';
+
+			id += 2;
 
 		}
 
-//		project.setup();
+		thicknes = 0.75;
+		sideLeft = fiveTo30MinuteChair.children[ 22 ];
 
-		scene.add( project );
+		depth = sideLeft.geometry.boundingBox.max.x - sideLeft.geometry.boundingBox.min.x;
+		height = sideLeft.geometry.boundingBox.max.y - sideLeft.geometry.boundingBox.min.y;
+
+		sideLeft.userData.startRotation = sideLeft.rotation.clone();
+		sideLeft.userData.endRotation = v( 0, pi / 2, 0 );
+		sideLeft.userData.startPosition = sideLeft.position.clone();
+		sideLeft.userData.endPosition = v( 0, - sideLeft.geometry.boundingBox.min.y , depth + sideLeft.geometry.boundingBox.min.x  );
+
+		front = fiveTo30MinuteChair.children[ 20 ];
+
+		width = front.geometry.boundingBox.max.x - front.geometry.boundingBox.min.x;
+
+		front.userData.startRotation = front.rotation.clone();
+		front.userData.endRotation = v( 0, pi, -pi );
+		front.userData.startPosition = front.position.clone();
+		front.userData.endPosition = v( - thickness, front.geometry.boundingBox.max.y, depth  );
+
+		sideRight = fiveTo30MinuteChair.children[ 28 ];
+		sideRight.userData.startRotation = sideRight.rotation.clone();
+		sideRight.userData.endRotation = v( 0, -pi / 2, 0 );
+		sideRight.userData.startPosition = sideRight.position.clone();
+		sideRight.userData.endPosition = v( width, - sideRight.geometry.boundingBox.min.y, - sideRight.geometry.boundingBox.min.x );
+
+		back = fiveTo30MinuteChair.children[ 30 ];
+		back.userData.startRotation = back.rotation.clone();
+		back.userData.endRotation = v( 0, pi, pi );
+		back.userData.startPosition = back.position.clone();
+		back.userData.endPosition = v( - back.geometry.boundingBox.min.x, back.geometry.boundingBox.max.y, thickness  );
+
+		seatBack = fiveTo30MinuteChair.children[ 26 ];
+
+		backHeight = seatBack.geometry.boundingBox.max.x - seatBack.geometry.boundingBox.min.x;
+		seatBack.userData.startRotation = seatBack.rotation.clone();
+		seatBack.userData.endRotation = v( -0.25, 0, pi  / 2 );
+		seatBack.userData.startPosition = seatBack.position.clone();
+		seatBack.userData.endPosition = v( + seatBack.geometry.boundingBox.max.y, height - seatBack.geometry.boundingBox.min.x - backHeight + 3.5, 10 );
+
+		seat = fiveTo30MinuteChair.children[ 24 ];
+
+		seat.userData.startRotation = seat.rotation.clone();
+		seat.userData.endRotation = v( -0.1 - pi/ 2, 0 , pi / 2 );
+		seat.userData.startPosition = seat.position.clone();
+		seat.userData.endPosition = v( seat.geometry.boundingBox.max.y, 19, seat.geometry.boundingBox.max.x );
+
+		components = [ sideLeft, front, sideRight, back, seatBack, seat ];
+
+		scene.add( fiveTo30MinuteChair );
 
 	}
 
@@ -344,7 +350,7 @@
 
 		raycaster.setFromCamera( mouse, camera );
 
-		var intersects = raycaster.intersectObjects( components.children );
+		var intersects = raycaster.intersectObjects( fiveTo30MinuteChair.children );
 
 		if ( intersects.length > 0 ) {
 
@@ -367,7 +373,7 @@
 
 			}
 
-			 particle = new THREE.Sprite( particleMaterial );
+			particle = new THREE.Sprite( particleMaterial );
 
 			particle.position.copy( pt );
 			particle.scale.x = particle.scale.y = 0.5;
@@ -379,8 +385,10 @@
 			headsUp.style.display = '';
 
 			headsUp.innerHTML  = '<h3 style="margin:0;" >Data Viewer</h3>' +
-				'componentID:' + intersected.userData.componentID + '<br>' +
-				'Polyline ID:' + intersected.userData.id + '<br>' +
+				'polyline ID:' + intersected.userData.polylineID + '<br>' +
+				'component ID:' + intersected.userData.componentID + '<br>' +
+				'DXF ID:' + intersected.userData.dxfID + '<br>' +
+				'start line:' + intersected.userData.startLine + '<br>' +
 				'Three.js id:' + intersected.id + '<br>' +
 				'UUID:' + intersected.uuid + '<br>' +
 				'Layer: ' + intersected.userData.layer + '<br>' +
@@ -389,6 +397,8 @@
 
 			'';
 
+			movRotTween( intersected );
+
 		} else {
 
 			intersected = null;
@@ -396,6 +406,107 @@
 			headsUp.style.display = 'none';
 
 			document.body.style.cursor = 'auto';
+
+		}
+
+	}
+
+	function movRotTween( obj ) {
+
+		var tween = new TWEEN.Tween( obj.position );
+		var oData = obj.userData;
+
+		if ( obj.position.distanceTo( obj.userData.startPosition ) < 1 ) {
+console.log( obj );
+
+//fiveTo30MinuteChair.children[ 0 ].position.z = fiveTo30MinuteChair.children[ 0 ].userData.endPosition.z;
+
+			tween.to( {
+				x: oData.endPosition.x,
+				y: oData.endPosition.y,
+				z: oData.endPosition.z }, 2000 )
+
+			tween.easing( TWEEN.Easing.Elastic.Out).start();
+
+			new TWEEN.Tween( obj.rotation ).to( {
+				x: oData.endRotation.x,
+				y: oData.endRotation.y,
+				z: oData.endRotation.z }, 2000 )
+			.easing( TWEEN.Easing.Elastic.Out).start();
+
+		} else {
+
+			tween.to( {
+				x: oData.startPosition.x,
+				y: oData.startPosition.y,
+				z: oData.startPosition.z }, 2000 )
+
+			tween.easing( TWEEN.Easing.Elastic.Out).start();
+
+			new TWEEN.Tween( obj.rotation ).to( {
+				x: oData.startRotation.x,
+				y: oData.startRotation.y,
+				z: oData.startRotation.z }, 2000 )
+			.easing( TWEEN.Easing.Elastic.Out).start();
+
+		}
+	}
+
+	function assembleQuicklyTween() {
+
+		for ( var i = 0; i < components.length; i++ ) {
+
+			obj = components[ i ];
+
+			var tween = new TWEEN.Tween( obj.position );
+			var oData = obj.userData;
+
+			if ( obj.position.distanceTo( obj.userData.endPosition ) != 0 ) {
+
+				tween.to( {
+					x: oData.endPosition.x,
+					y: oData.endPosition.y,
+					z: oData.endPosition.z }, 2000 )
+
+				tween.easing( TWEEN.Easing.Elastic.Out).start();
+
+				new TWEEN.Tween( obj.rotation ).to( {
+					x: oData.endRotation.x,
+					y: oData.endRotation.y,
+					z: oData.endRotation.z }, 2000 )
+				.easing( TWEEN.Easing.Elastic.Out).start();
+
+			}
+
+		}
+
+	}
+
+	function returnAllToStartTween() {
+
+		for ( var i = 0; i < components.length; i++ ) {
+
+			obj = components[ i ];
+
+			var tween = new TWEEN.Tween( obj.position );
+			var oData = obj.userData;
+
+			if ( obj.position.distanceTo( obj.userData.startPosition ) != 0 ) {
+
+				tween.to( {
+					x: oData.startPosition.x,
+					y: oData.startPosition.y,
+					z: oData.startPosition.z }, 2000 )
+
+				tween.easing( TWEEN.Easing.Elastic.Out).start();
+
+				new TWEEN.Tween( obj.rotation ).to( {
+					x: oData.startRotation.x,
+					y: oData.startRotation.y,
+					z: oData.startRotation.z }, 2000 )
+				.easing( TWEEN.Easing.Elastic.Out).start();
+
+			}
 
 		}
 
@@ -421,11 +532,9 @@
 
 	}
 
-	function requestFile( fName, project ) {
-		fileName = fName;
+	function requestFile( fileName ) {
 
 		xmlHttp = new XMLHttpRequest();
-		xmlHttp.project = project;
 		xmlHttp.open( 'GET', fileName, true );
 		xmlHttp.onreadystatechange = getDXF;
 		xmlHttp.send( null );
@@ -461,6 +570,7 @@
 
 		requestAnimationFrame( animate );
 		controls.update();
+		TWEEN.update();
 		stats.update();
 		renderer.render( scene, camera );
 

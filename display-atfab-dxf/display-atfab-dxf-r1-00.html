@@ -26,17 +26,12 @@
 	var layers = [];
 	var layersSearch = false;
 
-	var polylines;
-	var polylinesSearch;
-	var polylinesCount;
+	var polylines = [];
+	var polylinesSearch = false;
+	var polylinesCount = -1;
 
-	var holes;
-	var holesCount;
-
-	var rotationalStools;
-	var rotationalTable;
-	var fiveTo30MinuteChair;
-	var oneToSeveralTables;
+	var holes = [];
+	var holesCount = -1;
 
 	var components;
 	var componentsHoles = [];
@@ -60,10 +55,10 @@
 		var info = document.body.appendChild( document.createElement( 'div' ) );
 		info.style.cssText = 'margin: 20px; max-height: 900px; max-width: 300px; position: absolute; overflow: auto; ';
 		info.innerHTML = '<a href="" ><h1>' + document.title + '</h1></a>' +
-			'<p><a href=JavaScript:drawRotationalStool(); >Rotational-Stools.Cutting-Files</a></p>' +
-			'<p><a href=JavaScript:drawRotationalTable(); >Rotational-Table.Cutting-Files</a></p>' +
-			'<p><a href=JavaScript:drawFiveTo30MinuteChair(); >5-To-30-Minute-Chair.Cutting-Files</a></p>' +
-			'<p><a href=JavaScript:drawOneToSeveralTables(); >One-To-Several-Table.Cutting-Files</a></p>' +
+			'<p><a href=JavaScript:requestFile(fileNames[0]); >Rotational-Stools.Cutting-Files</a></p>' +
+			'<p><a href=JavaScript:requestFile(fileNames[1]); >Rotational-Table.Cutting-Files</a></p>' +
+			'<p><a href=JavaScript:requestFile(fileNames[2]); >5-To-30-Minute-Chair.Cutting-Files</a></p>' +
+			'<p><a href=JavaScript:requestFile(fileNames[3]); >One-To-Several-Table.Cutting-Files</a></p>' +
 
 			'<p><input type=file id=inpFile onchange=openFile(this); /></p>' +
 //			'<p><button onclick=drawFramesUnique(); >Draw Unique Shapes Only</button></p>' +
@@ -116,58 +111,55 @@
 
 	}
 
-	function drawRotationalStool() {
 
-		scene.remove( rotationalStools );
-		rotationalStools = new THREE.Object3D();
+	function openFile( that ) {
 
-		requestFile( fileNames[ 0 ], rotationalStools );
+		var reader = new FileReader();
 
-	}
+		reader.onloadend = function( event ) {
+//			data = event.target.result;
+			data =  reader.result;
+			msg2.innerHTML = data;
 
-	function drawRotationalTable() {
+			msg1.innerHTML = that + '<br>name: ' + that.files[0].name + ' size: ' + that.files[0].size + 
+			' type: ' + that.files[0].type + ' modified: ' + that.files[0].lastModifiedDate;
 
-		scene.remove( rotationalTable );
-		rotationalTable = new THREE.Object3D();
-
-		requestFile( fileNames[ 1 ], rotationalTable );
-
-		rotationalTable.setup = function() {
-
-			rotationalTable.children[0].position.z = 50;
+			readDXF( data );
 
 		}
 
-	}
-
-	function drawFiveTo30MinuteChair() {
-
-		scene.remove( fiveTo30MinuteChair );
-		fiveTo30MinuteChair = new THREE.Object3D();
-
-		requestFile( fileNames[ 2 ], fiveTo30MinuteChair );
+		reader.readAsText( that.files[0] );
 
 	}
 
-
-	function drawOneToSeveralTables() {
-
-		scene.remove( oneToSeveralTables );
-		oneToSeveralTables = new THREE.Object3D();
-
-		requestFile( fileNames[ 3 ], oneToSeveralTables );
+	function requestFile( fName ) {
+		fileName = fName;
+		xmlHttp = new XMLHttpRequest();
+		xmlHttp.open( 'GET', fileName, true );
+		xmlHttp.onreadystatechange = getDXF;
+		xmlHttp.send( null );
 
 	}
 
-	function readDXF( text, project ) {
+	function getDXF() {
 
+		if ( xmlHttp.readyState !== 4  ) { 
+
+			msg1.innerHTML += '.';
+			return; 
+
+		}
+
+		readDXF( xmlHttp.responseText );
+
+	}
+
+
+	function readDXF( text ) {
+
+//		text = xmlHttp.responseText;
 		lines = text.split(/\r\n|\n/);
 
-		var layer;
-		layers = [];
-		layersSearch = false;
-
-		var polyline
 		polylines = [];
 		polylinesSearch = false;
 		polylinesCount = -1;
@@ -253,14 +245,17 @@
 
 		}
 
-		drawShapesWithHoles( project );
+		drawShapesWithHoles();
 
 		msg1.innerHTML = '<p>File loaded: ' +fileName + '<p>';
 
 	}
 
 
-	function drawShapesWithHoles( project ) {
+	function drawShapesWithHoles( index ) {
+
+		scene.remove( components );
+		components = new THREE.Object3D();
 
 		material = new THREE.MeshNormalMaterial();
 		var plineHoles;
@@ -308,20 +303,18 @@
 
 			} else {
 
-				mesh.position.set( -80, -70, 0 );
+				mesh.position.set( -50, -70, 0 );
 
 			}
 
-			project.add( mesh );
+			components.add( mesh );
 
 			edges = new THREE.EdgesHelper( mesh, 0x333333 );
-			project.add( edges );
+			components.add( edges );
 
 		}
 
-//		project.setup();
-
-		scene.add( project );
+		scene.add( components );
 
 	}
 
@@ -398,50 +391,6 @@
 			document.body.style.cursor = 'auto';
 
 		}
-
-	}
-
-	function openFile( that ) {
-
-		var reader = new FileReader();
-
-		reader.onloadend = function( event ) {
-
-			data =  reader.result;
-			msg2.innerHTML = data;
-
-			msg1.innerHTML = that + '<br>name: ' + that.files[0].name + ' size: ' + that.files[0].size + 
-			' type: ' + that.files[0].type + ' modified: ' + that.files[0].lastModifiedDate;
-
-			readDXF( data );
-
-		}
-
-		reader.readAsText( that.files[0] );
-
-	}
-
-	function requestFile( fName, project ) {
-		fileName = fName;
-
-		xmlHttp = new XMLHttpRequest();
-		xmlHttp.project = project;
-		xmlHttp.open( 'GET', fileName, true );
-		xmlHttp.onreadystatechange = getDXF;
-		xmlHttp.send( null );
-
-	}
-
-	function getDXF() {
-
-		if ( xmlHttp.readyState !== 4  ) { 
-
-			msg1.innerHTML += '.';
-			return; 
-
-		}
-
-		readDXF( xmlHttp.responseText, xmlHttp.project );
 
 	}
 

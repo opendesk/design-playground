@@ -1,26 +1,20 @@
 <!doctype html>
 <html lang=en >
 <head>
-<title>Display AtFAB DXF R1</title>
+<title>OpenDesk Rotational Table DXF R1</title>
 <meta charset=utf-8 />
 <meta name=viewport content='width=device-width,user-scalable=no,minimum-scale=1.0,maximum-scale=1.0' />
 </head>
 <body>
 <script src=http://mrdoob.github.io/three.js/build/three.min.js ></script>
 <script src=http://mrdoob.github.io/three.js/examples/js/controls/OrbitControls.js ></script>
+<script src=http://mrdoob.github.com/three.js/examples/js/libs/tween.min.js ></script>
 <script src=http://mrdoob.github.io/three.js/examples/js/libs/stats.min.js ></script>
 <script>
 
-	var fileName = '../opendesk-rotational-stool/Rotational-Stools.Cutting-Files.dxf';
+	var fileName = '../OD-51382-Rotational-Table-1.0.0/Rotational-Table.Cutting-Files.dxf';
 
-	var fileNames = [
-		'../OD-51384-Rotational-Stools-1.0.0/Rotational-Stools.Cutting-Files.dxf',
-		'../OD-51382-Rotational-Table-1.0.0/Rotational-Table.Cutting-Files.dxf',
-		'../OD-51381-5-To-30-Minute-Chair-1.0.0/5-To-30-Minute-Chair.Cutting-Files.dxf',
-		'../OD-51383-One-To-Several-Table-1.0.0/One-To-Several-Table.Cutting-Files.dxf',
-		'../opendesk-rotational-stool/Rotational-Stools.Cutting-Files.dxf'
-	];
-	var thickness = 2;
+	var thickness = 0.75;
 
 	var layer;
 	var layers = [];
@@ -33,16 +27,15 @@
 	var holes;
 	var holesCount;
 
-	var rotationalStools;
 	var rotationalTable;
-	var fiveTo30MinuteChair;
-	var oneToSeveralTables;
-
 	var components;
-	var componentsHoles = [];
+
+	var pi = Math.PI;
 
 	var xmlHttp;
 
+	var originMarker;
+	var particleMaterial;
 	var raycaster;
 	var mouse;
 
@@ -54,18 +47,25 @@
 
 	function init() {
 
-		var css = document.head.appendChild( document.createElement('style') );
-		css.innerHTML ='body { font: 600 12pt monospace; margin: 0; overflow: hidden; }' ;
+		css = document.head.appendChild( document.createElement('style') );
+		css.innerHTML ='body { font: 600 12pt monospace; margin: 0; overflow: hidden; }' +
+			'#i {text-decoration: none; }' +
+		'';
 
-		var info = document.body.appendChild( document.createElement( 'div' ) );
-		info.style.cssText = 'margin: 20px; max-height: 900px; max-width: 300px; position: absolute; overflow: auto; ';
-		info.innerHTML = '<a href="" ><h1>' + document.title + '</h1></a>' +
+		info = document.body.appendChild( document.createElement( 'div' ) );
+		info.style.cssText = ' margin: 0 10px; max-height: ' + (window.innerHeight - 50) + 'px; max-width: 270px; overflow: auto; position: absolute; ';
+		info.innerHTML = '<h3 style=margin:0; ><a href="" >' + document.title + '</a> - ' +
+			'<a id=i href=http://opendesk.github.io/design-playground/ >&#x24D8;</a>' +
+			'<p><button onclick=assembleQuicklyTween(); >Assemble</button> ' +
+			'<button onclick=returnAllToStartTween(); >Disassemble</button></p>' +
+/*
 			'<p><a href=JavaScript:drawRotationalStool(); >Rotational-Stools.Cutting-Files</a></p>' +
 			'<p><a href=JavaScript:drawRotationalTable(); >Rotational-Table.Cutting-Files</a></p>' +
 			'<p><a href=JavaScript:drawFiveTo30MinuteChair(); >5-To-30-Minute-Chair.Cutting-Files</a></p>' +
 			'<p><a href=JavaScript:drawOneToSeveralTables(); >One-To-Several-Table.Cutting-Files</a></p>' +
-
 			'<p><input type=file id=inpFile onchange=openFile(this); /></p>' +
+*/
+
 //			'<p><button onclick=drawFramesUnique(); >Draw Unique Shapes Only</button></p>' +
 //			'<p><button onclick=drawShapesWithHoles(); >Draw Shapes with Holes</button></p>' +
 //			'<p><button onclick=drawPolylinesAndHoles(); >Draw Polylines and Holes</button></p>' +
@@ -99,7 +99,7 @@
 		scene = new THREE.Scene();
 
 // axes
-		var axisHelper = new THREE.AxisHelper( 200 );
+		var axisHelper = new THREE.AxisHelper( 20 );
 		scene.add( axisHelper );
 
 		particleMaterial = new THREE.SpriteMaterial( { color: 0xff0000 } );
@@ -112,54 +112,14 @@
 
 		window.addEventListener( 'resize', onWindowResize, false );
 
-//		requestFile( fileName );
+		requestFile( fileName );
 
 	}
 
-	function drawRotationalStool() {
-
-		scene.remove( rotationalStools );
-		rotationalStools = new THREE.Object3D();
-
-		requestFile( fileNames[ 0 ], rotationalStools );
-
-	}
-
-	function drawRotationalTable() {
+	function readDXF( text ) {
 
 		scene.remove( rotationalTable );
 		rotationalTable = new THREE.Object3D();
-
-		requestFile( fileNames[ 1 ], rotationalTable );
-
-		rotationalTable.setup = function() {
-
-			rotationalTable.children[0].position.z = 50;
-
-		}
-
-	}
-
-	function drawFiveTo30MinuteChair() {
-
-		scene.remove( fiveTo30MinuteChair );
-		fiveTo30MinuteChair = new THREE.Object3D();
-
-		requestFile( fileNames[ 2 ], fiveTo30MinuteChair );
-
-	}
-
-
-	function drawOneToSeveralTables() {
-
-		scene.remove( oneToSeveralTables );
-		oneToSeveralTables = new THREE.Object3D();
-
-		requestFile( fileNames[ 3 ], oneToSeveralTables );
-
-	}
-
-	function readDXF( text, project ) {
 
 		lines = text.split(/\r\n|\n/);
 
@@ -253,16 +213,17 @@
 
 		}
 
-		drawShapesWithHoles( project );
+		drawShapesWithHoles();
 
 		msg1.innerHTML = '<p>File loaded: ' +fileName + '<p>';
 
 	}
 
 
-	function drawShapesWithHoles( project ) {
+	function drawShapesWithHoles() {
 
 		material = new THREE.MeshNormalMaterial();
+		var id = 0;
 		var plineHoles;
 
 		for ( var i = 0; i < polylines.length; i++ ) {
@@ -296,32 +257,101 @@
 			}
 
 			geometry = shape.extrude( { amount: thickness, bevelEnabled: false} );
+			geometry.computeBoundingBox();
 
 			mesh = new THREE.Mesh( geometry, material );
 			mesh.userData.componentID = i;
-			mesh.userData.id = polylines[ i ].id;
+			mesh.userData.id = id;
 			mesh.userData.layer = polylines[ i ].layer;
+			mesh.position.set( -50, 0, 0 );
 
-			if ( fileName === '../OD-51383-One-To-Several-Table-1.0.0/One-To-Several-Table.Cutting-Files.dxf' ) {
-
-				mesh.position.set( -200, -70, 0 );
-
-			} else {
-
-				mesh.position.set( -80, -70, 0 );
-
-			}
-
-			project.add( mesh );
+			rotationalTable.add( mesh );
 
 			edges = new THREE.EdgesHelper( mesh, 0x333333 );
-			project.add( edges );
+			rotationalTable.add( edges );
+
+			msg2.innerHTML += 'Component ' + id + '<br>' +
+				'bounding box x:' + ( geometry.boundingBox.max.x - geometry.boundingBox.min.x ).toFixed( 5 )  + ' y:' + ( geometry.boundingBox.max.y - geometry.boundingBox.min.y ).toFixed( 5 ) + '<br>';
+
+			id += 2;
 
 		}
 
-//		project.setup();
+		topHigh = rotationalTable.children[ 0 ];
+		topHigh.userData.startRotation = topHigh.rotation.clone();
+		topHigh.userData.endRotation = v( -pi / 2, 0, 0 );
+		topHigh.userData.startPosition = topHigh.position.clone();
+		topHigh.userData.endPosition = v( 0, 20, 50 );
 
-		scene.add( project );
+		topLow = rotationalTable.children[ 12 ];
+		topLow.userData.startRotation = topLow.rotation.clone();
+		topLow.userData.endRotation = v( -pi / 2, 0, 0 );
+		topLow.userData.startPosition = topLow.position.clone();
+		topLow.userData.endPosition = v( -25, 5.5, 50 );
+
+		legTall1 = rotationalTable.children[ 8 ];
+		legTall1.userData.startRotation = legTall1.rotation.clone();
+		legTall1.userData.endRotation = v( 0, 0, pi / 2 );
+		legTall1.userData.startPosition = legTall1.position.clone();
+		legTall1.userData.endPosition = v( 31, -74, 39.5 );
+
+		legTall2 = rotationalTable.children[ 10 ];
+		legTall2.userData.startRotation = legTall2.rotation.clone();
+		legTall2.userData.endRotation = v( 0, -pi / 2, -pi / 2 );
+		legTall2.userData.startPosition = legTall2.position.clone();
+		legTall2.userData.endPosition = v( 15, 76, 18 );
+
+		legWide1 = rotationalTable.children[ 2 ];
+		legWide1.userData.startRotation = legWide1.rotation.clone();
+		legWide1.userData.endRotation = v( 0, 0, -pi / 2 );
+		legWide1.userData.startPosition = legWide1.position.clone();
+		legWide1.userData.endPosition = v( -17, 36, 48 );
+
+		legWide2 = rotationalTable.children[ 6 ];
+		legWide2.userData.startRotation = legWide2.rotation.clone();
+		legWide2.userData.endRotation = v( 0, pi / 2, pi / 2 );
+		legWide2.userData.startPosition = legWide2.position.clone();
+		legWide2.userData.endPosition = v( 29.5, -74, -6.5 );
+
+		legNarrow1 = rotationalTable.children[ 4 ];
+		legNarrow1.userData.startRotation = legNarrow1.rotation.clone();
+		legNarrow1.userData.endRotation = v( 0, pi, pi / 2 );
+		legNarrow1.userData.startPosition = legNarrow1.position.clone();
+		legNarrow1.userData.endPosition = v( -32, -35, 26 );
+
+		legNarrow2 = rotationalTable.children[ 18 ];
+		legNarrow2.userData.startRotation = legNarrow1.rotation.clone();
+		legNarrow2.userData.endRotation = v( 0, -pi / 2, -pi / 2 );
+		legNarrow2.userData.startPosition = legNarrow1.position.clone();
+		legNarrow2.userData.endPosition = v( 6.5, 75.5, 7.5 );
+
+		foot1 = rotationalTable.children[ 14 ];
+		foot1.userData.startRotation = foot1.rotation.clone();
+		foot1.userData.endRotation = v(  pi / 2, 0, 0 );
+		foot1.userData.startPosition = foot1.position.clone();
+		foot1.userData.endPosition = v( -36.5, -2.8, -2 );
+
+		foot2 = rotationalTable.children[ 16 ];
+		foot2.userData.startRotation = foot2.rotation.clone();
+		foot2.userData.endRotation = v(  pi / 2, 0, 0 );
+		foot2.userData.startPosition = foot2.position.clone();
+		foot2.userData.endPosition = v( -21, -3, 5 );
+
+		foot3 = rotationalTable.children[ 20 ];
+		foot3.userData.startRotation = foot3.rotation.clone();
+		foot3.userData.endRotation = v(  pi / 2, 0, 0 );
+		foot3.userData.startPosition = foot3.position.clone();
+		foot3.userData.endPosition = v( -29, -3, 12 );
+
+		foot4 = rotationalTable.children[ 22 ];
+		foot4.userData.startRotation = foot4.rotation.clone();
+		foot4.userData.endRotation = v(  pi / 2, 0, 0 );
+		foot4.userData.startPosition = foot4.position.clone();
+		foot4.userData.endPosition = v( -37, -3, 12 );
+
+		components = [ topHigh, topLow, legTall1, legTall2, legWide1, legWide2, legNarrow1, legNarrow2, foot1, foot2, foot3, foot4 ];
+
+		scene.add( rotationalTable );
 
 	}
 
@@ -344,7 +374,7 @@
 
 		raycaster.setFromCamera( mouse, camera );
 
-		var intersects = raycaster.intersectObjects( components.children );
+		var intersects = raycaster.intersectObjects( rotationalTable.children );
 
 		if ( intersects.length > 0 ) {
 
@@ -367,7 +397,7 @@
 
 			}
 
-			 particle = new THREE.Sprite( particleMaterial );
+			particle = new THREE.Sprite( particleMaterial );
 
 			particle.position.copy( pt );
 			particle.scale.x = particle.scale.y = 0.5;
@@ -389,6 +419,8 @@
 
 			'';
 
+			movRotTween( intersected );
+
 		} else {
 
 			intersected = null;
@@ -396,6 +428,107 @@
 			headsUp.style.display = 'none';
 
 			document.body.style.cursor = 'auto';
+
+		}
+
+	}
+
+	function movRotTween( obj ) {
+
+		var tween = new TWEEN.Tween( obj.position );
+		var oData = obj.userData;
+
+		if ( obj.position.distanceTo( obj.userData.startPosition ) < 1 ) {
+console.log( obj );
+
+//rotationalTable.children[ 0 ].position.z = rotationalTable.children[ 0 ].userData.endPosition.z;
+
+			tween.to( {
+				x: oData.endPosition.x,
+				y: oData.endPosition.y,
+				z: oData.endPosition.z }, 2000 )
+
+			tween.easing( TWEEN.Easing.Elastic.Out).start();
+
+			new TWEEN.Tween( obj.rotation ).to( {
+				x: oData.endRotation.x,
+				y: oData.endRotation.y,
+				z: oData.endRotation.z }, 2000 )
+			.easing( TWEEN.Easing.Elastic.Out).start();
+
+		} else {
+
+			tween.to( {
+				x: oData.startPosition.x,
+				y: oData.startPosition.y,
+				z: oData.startPosition.z }, 2000 )
+
+			tween.easing( TWEEN.Easing.Elastic.Out).start();
+
+			new TWEEN.Tween( obj.rotation ).to( {
+				x: oData.startRotation.x,
+				y: oData.startRotation.y,
+				z: oData.startRotation.z }, 2000 )
+			.easing( TWEEN.Easing.Elastic.Out).start();
+
+		}
+	}
+
+	function assembleQuicklyTween() {
+
+		for ( var i = 0; i < components.length; i++ ) {
+
+			obj = components[ i ];
+
+			var tween = new TWEEN.Tween( obj.position );
+			var oData = obj.userData;
+
+			if ( obj.position.distanceTo( obj.userData.endPosition ) != 0 ) {
+
+				tween.to( {
+					x: oData.endPosition.x,
+					y: oData.endPosition.y,
+					z: oData.endPosition.z }, 2000 )
+
+				tween.easing( TWEEN.Easing.Elastic.Out).start();
+
+				new TWEEN.Tween( obj.rotation ).to( {
+					x: oData.endRotation.x,
+					y: oData.endRotation.y,
+					z: oData.endRotation.z }, 2000 )
+				.easing( TWEEN.Easing.Elastic.Out).start();
+
+			}
+
+		}
+
+	}
+
+	function returnAllToStartTween() {
+
+		for ( var i = 0; i < components.length; i++ ) {
+
+			obj = components[ i ];
+
+			var tween = new TWEEN.Tween( obj.position );
+			var oData = obj.userData;
+
+			if ( obj.position.distanceTo( obj.userData.startPosition ) != 0 ) {
+
+				tween.to( {
+					x: oData.startPosition.x,
+					y: oData.startPosition.y,
+					z: oData.startPosition.z }, 2000 )
+
+				tween.easing( TWEEN.Easing.Elastic.Out).start();
+
+				new TWEEN.Tween( obj.rotation ).to( {
+					x: oData.startRotation.x,
+					y: oData.startRotation.y,
+					z: oData.startRotation.z }, 2000 )
+				.easing( TWEEN.Easing.Elastic.Out).start();
+
+			}
 
 		}
 
@@ -421,11 +554,9 @@
 
 	}
 
-	function requestFile( fName, project ) {
-		fileName = fName;
+	function requestFile( fileName ) {
 
 		xmlHttp = new XMLHttpRequest();
-		xmlHttp.project = project;
 		xmlHttp.open( 'GET', fileName, true );
 		xmlHttp.onreadystatechange = getDXF;
 		xmlHttp.send( null );
@@ -461,6 +592,7 @@
 
 		requestAnimationFrame( animate );
 		controls.update();
+		TWEEN.update();
 		stats.update();
 		renderer.render( scene, camera );
 

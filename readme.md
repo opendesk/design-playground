@@ -21,12 +21,18 @@ OpenDesk Design Playground
 <!--  a descriptive picture of a desired future state -->
 
 * To help create new ways of visualizing, collaborating and improving OpenDesk projects 
+* To leave behind the notion that you need 2D plans on paper in order to buid things
 
-## Projects
+## DXF Projects
+Scripts that read 2D DXF files downloaded from opendesk.cc and transform the data into viewable 3D.
+
+[OpenDesk Rotational Table DXF]( http://opendesk.github.io/design-playground/opendesk-rotational-table/opendesk-rotational-table-dxf-r1.html )
+
 
 [Display atFab DXF files Demo]( http://opendesk.github.io/design-playground/display-atfab-dxf/latest/ ) ~ view several [AtFAB]( https://www.opendesk.cc/atfab ) DXF files in 3D  
 [Read Me]( http://opendesk.github.io/design-playground/display-atfab-dxf/ )
 
+### App Projects
 [Half Sheet Table Demo]( http://opendesk.github.io/design-playground/opendesk-half-sheet-table/latest/ ) ~ view highly parameterized complex geometry  
 [Read Me]( http://opendesk.github.io/design-playground/opendesk-half-sheet-table/ )
 
@@ -63,6 +69,11 @@ The software is provided 'as is', without warranty of any kind, express or impli
 In no event shall the authors or copyright holders be liable for any claim, damages or other liability, whether in an action of contract, tort or otherwise, arising from, out of or in connection with the software or the use or other dealings in the software.
 
 ## Change Log
+
+2015-06-27 ~ Theo
+
+* Added Dev Notes
+
 
 2015-06-25 ~ Theo
 

@@ -1,0 +1,619 @@
+<!doctype html>
+<html lang=en >
+<head>
+<title>Display AtFAB DXF One to Several Table R1</title>
+<meta charset=utf-8 />
+<meta name=viewport content='width=device-width,user-scalable=no,minimum-scale=1.0,maximum-scale=1.0' />
+</head>
+<body>
+<script src=http://mrdoob.github.io/three.js/build/three.min.js ></script>
+<script src=http://mrdoob.github.io/three.js/examples/js/controls/OrbitControls.js ></script>
+<script src=http://mrdoob.github.com/three.js/examples/js/libs/tween.min.js ></script>
+<script src=http://mrdoob.github.io/three.js/examples/js/libs/stats.min.js ></script>
+<script>
+
+	var fileName = '../OD-51383-One-To-Several-Table-1.0.0/One-To-Several-Table.Cutting-Files.dxf';
+
+	var thickness = 0.75;
+
+	var layer;
+	var layers = [];
+	var layersSearch = false;
+
+	var polylines;
+	var polylinesSearch;
+	var polylinesCount;
+
+	var holes;
+	var holesCount;
+
+
+	var oneToSeveralTable;
+
+	var components;
+	var componentsHoles = [];
+	var pi = Math.PI;
+
+	var xmlHttp;
+
+	var originMarker;
+	var particleMaterial;
+	var raycaster;
+	var mouse;
+
+	var info, stats, renderer, scene, camera, controls;
+	var geometry, material, mesh;
+
+	init();
+	animate();
+
+	function init() {
+
+		var css = document.head.appendChild( document.createElement('style') );
+		css.innerHTML ='body { font: 600 12pt monospace; margin: 0; overflow: hidden; }' ;
+
+		var info = document.body.appendChild( document.createElement( 'div' ) );
+		info.style.cssText = 'margin: 20px; max-height: 900px; max-width: 300px; position: absolute; overflow: auto; ';
+		info.innerHTML = '<a href="" ><h1>' + document.title + '</h1></a>' +
+			'<p><button onclick=assembleQuicklyTween(); >Assemble</button> ' +
+			'<button onclick=returnAllToStartTween(); >Disassemble</button></p>' +
+/*
+			'<p><a href=JavaScript:drawRotationalStool(); >Rotational-Stools.Cutting-Files</a></p>' +
+			'<p><a href=JavaScript:drawRotationalTable(); >Rotational-Table.Cutting-Files</a></p>' +
+			'<p><a href=JavaScript:drawFiveTo30MinuteChair(); >5-To-30-Minute-Chair.Cutting-Files</a></p>' +
+			'<p><a href=JavaScript:drawOneToSeveralTables(); >One-To-Several-Table.Cutting-Files</a></p>' +
+			'<p><input type=file id=inpFile onchange=openFile(this); /></p>' +
+*/
+
+//			'<p><button onclick=drawFramesUnique(); >Draw Unique Shapes Only</button></p>' +
+//			'<p><button onclick=drawShapesWithHoles(); >Draw Shapes with Holes</button></p>' +
+//			'<p><button onclick=drawPolylinesAndHoles(); >Draw Polylines and Holes</button></p>' +
+//			'<p id=msg >This demo loads an AutoCAD 2007 formatted DXF files and displays the data<br>' +
+//			'1. Nested and ready to be cut out - in blue. <br>' +
+//			'2. Cut out and assembled - in white. <br>' +
+//			'3. Flat shapes (at 0,0,0) ready for data extraction - in magenta</p>' +
+//			'<p>Click on any of the assembled mallet components to see sample details.</p>' +
+			'<div id=msg1 ></div>' +
+			'<div id=msg2 >Extracted data:<br></div>' +
+		'';
+
+// Heads Up
+		headsUp = document.body.appendChild( document.createElement( 'div' ) );
+		headsUp.style.cssText = 'background-color: #ddd; border-radius: 8px; padding: 0 5px 10px 5px; opacity: 0.85; ' +
+			'position: absolute; left: 50px; text-align: left; z-index: 10;';
+
+		stats = new Stats();
+		stats.domElement.style.cssText = 'position: absolute; right: 0; top: 0; z-index: 100; ';
+		document.body.appendChild( stats.domElement );
+
+		renderer = new THREE.WebGLRenderer( { alpha: 1, antialias: true, clearColor: 0xffffff }  );
+		renderer.setSize( window.innerWidth, window.innerHeight );
+		document.body.appendChild( renderer.domElement );
+
+		camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 1000 );
+		camera.position.set( 85, 85, 85 );
+
+		controls = new THREE.OrbitControls( camera, renderer.domElement );
+
+		scene = new THREE.Scene();
+
+// axes
+		var axisHelper = new THREE.AxisHelper( 50 );
+		scene.add( axisHelper );
+
+		particleMaterial = new THREE.SpriteMaterial( { color: 0xff0000 } );
+
+		raycaster = new THREE.Raycaster();
+		mouse = new THREE.Vector2();
+
+		renderer.domElement.addEventListener( 'mousedown', onDocumentMouseDown, false );
+		renderer.domElement.addEventListener( 'touchstart', onDocumentTouchStart, false ); // for mobile
+
+		window.addEventListener( 'resize', onWindowResize, false );
+
+		requestFile( fileName );
+
+	}
+
+	function readDXF( text ) {
+
+		scene.remove( oneToSeveralTable );
+		oneToSeveralTable = new THREE.Object3D();
+
+		lines = text.split(/\r\n|\n/);
+
+		var layer;
+		layers = [];
+		layersSearch = false;
+
+		var polyline
+		polylines = [];
+		polylinesSearch = false;
+		polylinesCount = -1;
+
+		holes = [];
+		holesCount = -1;
+
+		for ( var i = 0; i < lines.length; i++ ) {
+
+			var l = lines[ i ];
+
+			if ( l === 'LAYER' ) {
+
+				layersSearch = true;
+
+			} else if ( layersSearch === true && l === '  2' ) {
+
+				layers.push( lines[ i + 1 ] );
+
+				layersSearch = false;
+
+			}
+
+			if ( l === 'LWPOLYLINE' ) {
+
+				polylinesSearch = true;
+
+				startLine = i;
+
+			}
+
+			if ( polylinesSearch === true ) {
+
+				if ( l === '  5' ) {
+
+					id = lines[ i + 1 ];
+
+				} else if ( l === '  8' ) {
+
+					layer = lines[ i + 1 ];
+
+					if ( layer === 'CUT_THRU' ) {
+
+						polylines[ ++polylinesCount ] = {};
+
+						polyline = polylines[ polylinesCount ];
+
+						polyline.id = id;
+
+						polyline.startLine = startLine;
+
+						polyline.layer = layer;
+
+						polyline.vertices = [];
+
+					} else if ( layer === 'CUT_HOLE'  ) {
+
+						holes[ ++holesCount ] = {};
+
+						polyline = holes[ holesCount ];
+
+						polyline.id = id;
+
+						polyline.startLine = startLine;
+
+						polyline.layer = layer;
+
+						polyline.vertices = [];
+
+					}
+
+				} else if ( polylinesSearch === true && l === ' 10' && ( layer === 'CUT_THRU' || layer === 'CUT_HOLE' ) ) {
+
+					polyline.vertices.push( v( + lines[ i + 1] , + lines[ i + 3 ], + lines[ i + 5 ] ) ); // +  sign forces string to number
+
+				} else if ( polylinesSearch === true && l === '  0' ) {
+
+					polylinesSearch = false;
+
+				}
+
+			}
+
+		}
+
+		drawShapesWithHoles();
+
+		msg1.innerHTML = '<p>File loaded: ' +fileName + '<p>';
+
+	}
+
+
+	function drawShapesWithHoles() {
+
+		material = new THREE.MeshNormalMaterial( { opacity: 0.7, transparent: true } );
+		var id = 0;
+		var plineHoles;
+
+		for ( var i = 0; i < polylines.length; i++ ) {
+
+			firstBB = new THREE.Box3().setFromPoints( polylines[ i ].vertices );
+
+			plineHoles = [];
+
+			for ( var j = 0; j < holes.length; j++ ) {
+
+				secondBB = new THREE.Box3().setFromPoints( holes[ j ].vertices ); 
+
+				if ( firstBB.containsBox( secondBB ) === true ) {
+
+					plineHoles.push( holes[ j ] );
+
+				}
+
+			}
+
+			var shape = new THREE.Shape();
+			shape.fromPoints( polylines[ i ].vertices );
+			var holePath;
+
+			for ( j = 0; j < plineHoles.length; j++ ) {
+
+				holePath = new THREE.Path();
+				holePath.fromPoints(  plineHoles[ j ].vertices );
+				shape.holes.push( holePath );
+
+			}
+
+			geometry = shape.extrude( { amount: thickness, bevelEnabled: false} );
+			geometry.computeBoundingBox();
+
+			mesh = new THREE.Mesh( geometry, material );
+			mesh.userData.polylineID = i;
+			mesh.userData.componentID = id;
+			mesh.userData.dxfID = polylines[ i ].id;
+			mesh.userData.layer = polylines[ i ].layer;
+			mesh.userData.startLine = polylines[ i ].startLine;
+			mesh.position.set( -250, -60, -20 );
+
+			oneToSeveralTable.add( mesh );
+
+			edges = new THREE.EdgesHelper( mesh, 0x333333 );
+			oneToSeveralTable.add( edges );
+
+			msg2.innerHTML += 'Component ' + id + '<br>' +
+				'bounding box x:' + ( geometry.boundingBox.max.x - geometry.boundingBox.min.x ).toFixed( 5 )  + ' y:' + ( geometry.boundingBox.max.y - geometry.boundingBox.min.y ).toFixed( 5 ) + '<br>';
+
+			id += 2;
+
+		}
+
+
+		ttop = oneToSeveralTable.children[ 10 ];
+
+		length = ttop.geometry.boundingBox.max.x - ttop.geometry.boundingBox.min.x;
+		height = width = ttop.geometry.boundingBox.max.y - ttop.geometry.boundingBox.min.y;
+
+		ttop.userData.startRotation = ttop.rotation.clone();
+		ttop.userData.endRotation = v( pi / 2, 0, 0 );
+		ttop.userData.startPosition = ttop.position.clone();
+		ttop.userData.endPosition = v( - ttop.geometry.boundingBox.min.x, height, - ttop.geometry.boundingBox.min.y  );
+
+		legBack = oneToSeveralTable.children[ 22];
+		legBack.userData.startRotation = legBack.rotation.clone();
+		legBack.userData.endRotation = v( 0, 0, pi );
+		legBack.userData.startPosition = legBack.position.clone();
+		legBack.userData.endPosition = v( legBack.geometry.boundingBox.min.x + length, legBack.geometry.boundingBox.min.y + height, 0 );
+
+		legFront = oneToSeveralTable.children[ 0 ];
+		legFront.userData.startRotation = legFront.rotation.clone();
+		legFront.userData.endRotation = v( 0, pi , 0 );
+		legFront.userData.startPosition = legFront.position.clone();
+		legFront.userData.endPosition = v( legFront.geometry.boundingBox.min.x + length, - legFront.geometry.boundingBox.min.y, width );
+
+		legRight = oneToSeveralTable.children[ 4 ];
+		legRight.userData.startRotation = legRight.rotation.clone();
+		legRight.userData.endRotation = v( 0, -pi / 2, 0 );
+		legRight.userData.startPosition = legRight.position.clone();
+		legRight.userData.endPosition = v( length, - legRight.geometry.boundingBox.min.y, - legRight.geometry.boundingBox.max.x  + width );
+
+		legLeft = oneToSeveralTable.children[ 2 ];
+		legLeft.userData.startRotation = legLeft.rotation.clone();
+		legLeft.userData.endRotation = v( 0, pi / 2, pi );
+		legLeft.userData.startPosition = legLeft.position.clone();
+		legLeft.userData.endPosition = v( 0, legLeft.geometry.boundingBox.min.y + height, - legLeft.geometry.boundingBox.min.x );
+
+		railFront = oneToSeveralTable.children[ 8 ];
+		railFront.userData.startRotation = railFront.rotation.clone();
+		railFront.userData.endRotation = v( 0, 0, 0 );
+		railFront.userData.startPosition = railFront.position.clone();
+		railFront.userData.endPosition = v( - railFront.geometry.boundingBox.min.x, - geometry.boundingBox.min.y + height, 0.6667 * width );
+
+		railBack = oneToSeveralTable.children[ 18 ];
+		railBack.userData.startRotation = railBack.rotation.clone();
+		railBack.userData.endRotation = v( 0, 0, pi );
+		railBack.userData.startPosition = railBack.position.clone();
+		railBack.userData.endPosition = v( railBack.geometry.boundingBox.min.x + length, railBack.geometry.boundingBox.min.y + height, 0.3333 * width  );
+
+		railRight = oneToSeveralTable.children[ 12 ];
+		railRight.userData.startRotation = railRight.rotation.clone();
+		railRight.userData.endRotation = v( 0, pi / 2, -pi / 2 );
+		railRight.userData.startPosition = railRight.position.clone();
+		railRight.userData.endPosition = v( 0.6667 * length, railRight.geometry.boundingBox.min.x + height, railRight.geometry.boundingBox.min.y + width );
+
+		railLeft = oneToSeveralTable.children[ 24 ];
+		railLeft.userData.startRotation = railLeft.rotation.clone();
+		railLeft.userData.endRotation = v( 0, pi / 2, pi / 2 );
+		railLeft.userData.startPosition = railLeft.position.clone();
+		railLeft.userData.endPosition = v( 0.3333 * length, height - railLeft.geometry.boundingBox.max.x, - railRight.geometry.boundingBox.min.y  );
+
+		foot1 = oneToSeveralTable.children[ 6] ;
+		foot1.userData.startRotation = foot1.rotation.clone();
+		foot1.userData.endRotation = v( -pi / 2, 0, 0 );
+		foot1.userData.startPosition = foot1.position.clone();
+		foot1.userData.endPosition = v( - foot1.geometry.boundingBox.min.x, 0, foot1.geometry.boundingBox.min.y + width );
+
+		foot2 = oneToSeveralTable.children[ 14 ];
+		foot2.userData.startRotation = foot2.rotation.clone();
+		foot2.userData.endRotation = v( -pi / 2, 0, 0 );
+		foot2.userData.startPosition = foot2.position.clone();
+		foot2.userData.endPosition = v( length - foot2.geometry.boundingBox.max.x, 0, foot2.geometry.boundingBox.min.y + width);
+
+		foot3 = oneToSeveralTable.children[ 16 ];
+		foot3.userData.startRotation = foot3.rotation.clone();
+		foot3.userData.endRotation = v( -pi / 2, 0, 0 );
+		foot3.userData.startPosition = foot3.position.clone();
+		foot3.userData.endPosition = v( length - foot3.geometry.boundingBox.max.x, 0, foot3.geometry.boundingBox.max.y );
+
+		foot4 = oneToSeveralTable.children[ 20 ];
+		foot4.userData.startRotation = foot4.rotation.clone();
+		foot4.userData.endRotation = v( -pi / 2, 0, 0 );
+		foot4.userData.startPosition = foot4.position.clone();
+		foot4.userData.endPosition = v( - foot4.geometry.boundingBox.min.x, 0, foot4.geometry.boundingBox.max.y );
+
+		components = [ ttop, legBack, legFront, legLeft, legRight, railFront, railBack, railRight, railLeft, foot1, foot2, foot3, foot4 ];
+
+		scene.add( oneToSeveralTable );
+
+	}
+
+	function onDocumentTouchStart( event ) {
+		
+		event.preventDefault();
+		
+		event.clientX = event.touches[0].clientX;
+		event.clientY = event.touches[0].clientY;
+		onDocumentMouseDown( event );
+
+	}
+
+	function onDocumentMouseDown( event ) {
+
+		event.preventDefault();
+
+		mouse.x = ( event.clientX / renderer.domElement.width ) * 2 - 1;
+		mouse.y = - ( event.clientY / renderer.domElement.height ) * 2 + 1;
+
+		raycaster.setFromCamera( mouse, camera );
+
+		var intersects = raycaster.intersectObjects( oneToSeveralTable.children );
+
+		if ( intersects.length > 0 ) {
+
+			intersected = intersects[ 0 ].object;
+//			intersected.material.color.setHex( Math.random() * 0xffffff );
+
+			verts = intersected.geometry.vertices;
+			dis = 1000000000;
+			ip = intersects[ 0 ].point;
+
+			for ( var i = 0; i < verts.length; i++ ) {
+
+				vert = verts[ i ].clone();
+				vert.applyMatrix4( intersected.matrixWorld );
+				d = vert.distanceTo( ip );
+				if ( d < dis ) {
+					dis = d;
+					pt = vert;
+				}
+
+			}
+
+			particle = new THREE.Sprite( particleMaterial );
+
+			particle.position.copy( pt );
+			particle.scale.x = particle.scale.y = 0.5;
+			scene.add( particle );
+
+
+			headsUp.style.left = 50 + 0.5 * window.innerWidth + mouse.x * 0.5 * window.innerWidth + 'px';
+			headsUp.style.top = -10 + 0.5 * window.innerHeight - mouse.y * 0.5 * window.innerHeight + 'px';
+			headsUp.style.display = '';
+
+			headsUp.innerHTML  = '<h3 style="margin:0;" >Data Viewer</h3>' +
+				'polyline ID:' + intersected.userData.polylineID + '<br>' +
+				'component ID:' + intersected.userData.componentID + '<br>' +
+				'DXF ID:' + intersected.userData.dxfID + '<br>' +
+				'start line:' + intersected.userData.startLine + '<br>' +
+				'Three.js id:' + intersected.id + '<br>' +
+				'UUID:' + intersected.uuid + '<br>' +
+				'Layer: ' + intersected.userData.layer + '<br>' +
+				'Point x: ' + intersects[ 0 ].point.x.toFixed(2) + ' y:' + intersects[ 0 ].point.y.toFixed(2) + ' z:' + intersects[ 0 ].point.z.toFixed(2) + '<br>' +
+				'vertex x:' + pt.x.toFixed(2) + ' y:' + pt.y.toFixed(2) + ' z:' + pt.z.toFixed(2) + '<br>' +
+
+			'';
+
+			movRotTween( intersected );
+
+		} else {
+
+			intersected = null;
+
+			headsUp.style.display = 'none';
+
+			document.body.style.cursor = 'auto';
+
+		}
+
+	}
+
+	function movRotTween( obj ) {
+
+		var tween = new TWEEN.Tween( obj.position );
+		var oData = obj.userData;
+
+		if ( obj.position.distanceTo( obj.userData.startPosition ) < 1 ) {
+console.log( obj );
+
+//oneToSeveralTable.children[ 0 ].position.z = oneToSeveralTable.children[ 0 ].userData.endPosition.z;
+
+			tween.to( {
+				x: oData.endPosition.x,
+				y: oData.endPosition.y,
+				z: oData.endPosition.z }, 2000 )
+
+			tween.easing( TWEEN.Easing.Elastic.Out).start();
+
+			new TWEEN.Tween( obj.rotation ).to( {
+				x: oData.endRotation.x,
+				y: oData.endRotation.y,
+				z: oData.endRotation.z }, 2000 )
+			.easing( TWEEN.Easing.Elastic.Out).start();
+
+		} else {
+
+			tween.to( {
+				x: oData.startPosition.x,
+				y: oData.startPosition.y,
+				z: oData.startPosition.z }, 2000 )
+
+			tween.easing( TWEEN.Easing.Elastic.Out).start();
+
+			new TWEEN.Tween( obj.rotation ).to( {
+				x: oData.startRotation.x,
+				y: oData.startRotation.y,
+				z: oData.startRotation.z }, 2000 )
+			.easing( TWEEN.Easing.Elastic.Out).start();
+
+		}
+	}
+
+	function assembleQuicklyTween() {
+
+		for ( var i = 0; i < components.length; i++ ) {
+
+			obj = components[ i ];
+
+			var tween = new TWEEN.Tween( obj.position );
+			var oData = obj.userData;
+
+			if ( obj.position.distanceTo( obj.userData.endPosition ) != 0 ) {
+
+				tween.to( {
+					x: oData.endPosition.x,
+					y: oData.endPosition.y,
+					z: oData.endPosition.z }, 2000 )
+
+				tween.easing( TWEEN.Easing.Elastic.Out).start();
+
+				new TWEEN.Tween( obj.rotation ).to( {
+					x: oData.endRotation.x,
+					y: oData.endRotation.y,
+					z: oData.endRotation.z }, 2000 )
+				.easing( TWEEN.Easing.Elastic.Out).start();
+
+			}
+
+		}
+
+	}
+
+	function returnAllToStartTween() {
+
+		for ( var i = 0; i < components.length; i++ ) {
+
+			obj = components[ i ];
+
+			var tween = new TWEEN.Tween( obj.position );
+			var oData = obj.userData;
+
+			if ( obj.position.distanceTo( obj.userData.startPosition ) != 0 ) {
+
+				tween.to( {
+					x: oData.startPosition.x,
+					y: oData.startPosition.y,
+					z: oData.startPosition.z }, 2000 )
+
+				tween.easing( TWEEN.Easing.Elastic.Out).start();
+
+				new TWEEN.Tween( obj.rotation ).to( {
+					x: oData.startRotation.x,
+					y: oData.startRotation.y,
+					z: oData.startRotation.z }, 2000 )
+				.easing( TWEEN.Easing.Elastic.Out).start();
+
+			}
+
+		}
+
+	}
+
+	function openFile( that ) {
+
+		var reader = new FileReader();
+
+		reader.onloadend = function( event ) {
+
+			data =  reader.result;
+			msg2.innerHTML = data;
+
+			msg1.innerHTML = that + '<br>name: ' + that.files[0].name + ' size: ' + that.files[0].size + 
+			' type: ' + that.files[0].type + ' modified: ' + that.files[0].lastModifiedDate;
+
+			readDXF( data );
+
+		}
+
+		reader.readAsText( that.files[0] );
+
+	}
+
+	function requestFile( fileName ) {
+
+		xmlHttp = new XMLHttpRequest();
+		xmlHttp.open( 'GET', fileName, true );
+		xmlHttp.onreadystatechange = getDXF;
+		xmlHttp.send( null );
+
+	}
+
+	function getDXF() {
+
+		if ( xmlHttp.readyState !== 4  ) { 
+
+			msg1.innerHTML += '.';
+			return; 
+
+		}
+
+		readDXF( xmlHttp.responseText, xmlHttp.project );
+
+	}
+
+	function onWindowResize() {
+
+		camera.aspect = window.innerWidth / window.innerHeight;
+		camera.updateProjectionMatrix();
+
+		renderer.setSize( window.innerWidth, window.innerHeight );
+
+	}
+
+	function v2( x, y ){ return new THREE.Vector2( x, y ); }
+	function v( x, y, z ){ return new THREE.Vector3( x, y, z ); }
+
+	function animate() {
+
+		requestAnimationFrame( animate );
+		controls.update();
+		TWEEN.update();
+		stats.update();
+		renderer.render( scene, camera );
+
+	}
+
+</script>
+</body>
+</html>
+
+
