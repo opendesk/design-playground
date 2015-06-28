@@ -5,7 +5,6 @@
 OpenDesk has a global network of makers and a collection of furniture by a range of international designers. 
 Because OpenDesk furniture is designed for digital fabrication, you may download the digital file and make locally - on demand - anywhere in the world.
 ***
-
 [OpenDesk Design Playground]( http://opendesk.github.io/design-playground ) &raquo;
 Display AtFAB DXF
 ===

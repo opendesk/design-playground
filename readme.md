@@ -38,8 +38,8 @@ Scripts that attempt to recreate the OpenDesp projects by creating 3D models on-
 [Half Sheet Table Demo]( http://opendesk.github.io/design-playground/opendesk-half-sheet-table/latest/ ) ~ view highly parameterized complex geometry  
 [Read Me]( http://opendesk.github.io/design-playground/opendesk-half-sheet-table/ )
 
-[Rotational Stools Demo]( http://opendesk.github.io/design-playground/opendesk-rotational-stool/latest/ ) ~ view fully parameterized with assemble disassemble, simple geometry  
-[Read Me]( http://opendesk.github.io/design-playground/opendesk-rotational-stool/ )
+[Rotational Stools Demo]( http://opendesk.github.io/design-playground/opendesk-rotational-stools/latest/ ) ~ view fully parameterized with assemble disassemble, simple geometry  
+[Read Me]( http://opendesk.github.io/design-playground/opendesk-rotational-stools/ )
 
 ## Features
 

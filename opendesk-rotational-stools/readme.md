@@ -2,7 +2,7 @@
 
 Opendesk has a global network of makers and a collection of furniture by a range of international designers. Because that furniture is designed for digital fabrication, it can be downloaded as a digital file and made locally — on demand, anywhere in the world.
 ***
-
+[OpenDesk Design Playground]( http://opendesk.github.io/design-playground/ ) &raquo;  
 OpenDesk Rotational Stool Build R1
 ===
 
