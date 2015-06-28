@@ -21,27 +21,33 @@ OpenDesk Design Playground
 <!--  a descriptive picture of a desired future state -->
 
 * To help create new ways of visualizing, collaborating and improving OpenDesk projects 
-* To leave behind the notion that you need 2D plans on paper in order to buid things
+* To leave behind the notion that you need 2D plans on paper in order to build things
 
 ## DXF Projects
-Scripts that read 2D DXF files downloaded from opendesk.cc and transform the data into viewable 3D.
+Scripts that read 2D DXF files downloaded from [OpenDesk]( http://opendesk.cc ) and transform the data into viewable 3D.
 
-[OpenDesk 5 to 30 Minute Chair DXF]( http://opendesk.github.io/design-playground/opendesk-5-to-30-minute-chair/latest/ ) ~ assembled components positioned by algorithm - except for angled compoenents
+[OpenDesk 5 to 30 Minute Chair DXF]( http://opendesk.github.io/design-playground/opendesk-5-to-30-minute-chair/latest/ ) ~ assembled components positioned by algorithm ~ except for angled components
 
 [OpenDesk One to Several Table DXF]( http://opendesk.github.io/design-playground/opendesk-one-to-several-table/latest/ ) ~ assembled components positioned by algorithm
+~ Probably the most finished demo as of this writing
 
 [OpenDesk Rotational Table DXF]( http://opendesk.github.io/design-playground/opendesk-rotational-table/latest/ ) ~ assembled components positioned, gasp!, by eye
 
 [Display atFab DXF files Demo]( http://opendesk.github.io/design-playground/display-atfab-dxf/latest/ ) ~ view several [AtFAB]( https://www.opendesk.cc/atfab ) DXF files in 3D  
 [Read Me]( http://opendesk.github.io/design-playground/display-atfab-dxf/ )
 
+Thank you [AtFAB]( http://atfab.co )!
+
 ### Roadmap
 
 * Add indication of the outline of the whole original plywood sheet
+* Allow for size of cutting tools
+	* including depth
 * Output to SVG, STL, PDF, Three.j JSON  and over formats
 * Create pretty renderings
-* Obtain assembled positions from the original SketchUp files
-
+* Obtain assembled 3D positions from the original SketchUp files
+* Display animation of the sequence of construction
+* Add exploded view
 
 
 ## App Projects
@@ -53,6 +59,12 @@ Scripts that attempt to recreate the OpenDesp projects by creating 3D models on-
 [Rotational Stools Demo]( http://opendesk.github.io/design-playground/opendesk-rotational-stools/latest/ ) ~ view fully parameterized with assemble disassemble, simple geometry  
 [Read Me]( http://opendesk.github.io/design-playground/opendesk-rotational-stools/ )
 
+### Roadmap
+
+* Output to SVG, STL, PDF, Three.j JSON  and over formats
+* Create pretty renderings
+
+
 ## Features
 
 The current collection of scripts are built using [Three.js]( http://threejs.org/ ). [Three.js]( https://en.wikipedia.org/wiki/Three.js ) is an open-source JavaScript library dedicated to building 3D apps on top of the WebGL built into modern browsers.
@@ -61,9 +73,13 @@ By communicating directly with the GPU in your computer, WebGL apps are very fas
 It is hope that in the future apps based on other technologies such as [OnShape]( https://www.onshape.com/ ) or [Grasshopper on Rhino]( http://www.grasshopper3d.com/ ) and others are added to this collection of tools.
  
  
-## Contact
+## Contacts
 
-opendesk-community@googlegroups.com	
+opendesk-community@googlegroups.com
+
+See also similar work at [WikiHouse.GitHub.io]( http://wikihouse.github.io/viewer-experiments/ )
+
+See also [AtFAB]( http://atfab.co )
 
 ##Copyright
 
@@ -100,7 +116,7 @@ Designers use their own layer naming conventions, their own scale units and even
 Thus a different DXF reader will have to be built for each designer. 
 I have started with AtFAB because they have a simple format.
 The only issue with their method is that there is no indication that a polyline is a hole inside another polyline,
-so I am having t identify these manually.
+so I am having to identify these manually.
  
 2015-06-24 ~ Theo
 

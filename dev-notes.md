@@ -6,7 +6,7 @@ Developer Notes
 
 First Post!
 
-Several types of scripts seem to be developing
+Several types of scripts seem to be developing in a somewhat natural progression, including:
 
 ### DXF readers
 These scripts read 2D DXF files downloaded from [OpenDesk](http://opendesk.cc] and transform the data into 3D.
@@ -22,6 +22,11 @@ The AtFAB DXF files have quite odd dimensions - such as 3.14961 x 3.14961. It lo
 
 ### Apps
 These scripts attempt to create the 3D models using code with user-entered parameters.
+
+These are created on the basis of the understanding of the DXF files.
+
+Input from the original designers would be really helpful here.
+
 
 
 

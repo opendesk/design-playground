@@ -266,6 +266,7 @@
 
 		}
 
+		thickness = 0.75;
 
 		ttop = oneToSeveralTable.children[ 10 ];
 
@@ -305,25 +306,25 @@
 		railFront.userData.startRotation = railFront.rotation.clone();
 		railFront.userData.endRotation = v( 0, 0, 0 );
 		railFront.userData.startPosition = railFront.position.clone();
-		railFront.userData.endPosition = v( - railFront.geometry.boundingBox.min.x, - geometry.boundingBox.min.y + height, 0.6667 * width );
+		railFront.userData.endPosition = v( - railFront.geometry.boundingBox.min.x, - geometry.boundingBox.min.y + height + thickness, 0.65 * width );
 
 		railBack = oneToSeveralTable.children[ 18 ];
 		railBack.userData.startRotation = railBack.rotation.clone();
 		railBack.userData.endRotation = v( 0, 0, pi );
 		railBack.userData.startPosition = railBack.position.clone();
-		railBack.userData.endPosition = v( railBack.geometry.boundingBox.min.x + length, railBack.geometry.boundingBox.min.y + height, 0.3333 * width  );
+		railBack.userData.endPosition = v( railBack.geometry.boundingBox.min.x + length, railBack.geometry.boundingBox.min.y + height, 0.325 * width  );
 
 		railRight = oneToSeveralTable.children[ 12 ];
 		railRight.userData.startRotation = railRight.rotation.clone();
 		railRight.userData.endRotation = v( 0, pi / 2, -pi / 2 );
 		railRight.userData.startPosition = railRight.position.clone();
-		railRight.userData.endPosition = v( 0.6667 * length, railRight.geometry.boundingBox.min.x + height, railRight.geometry.boundingBox.min.y + width );
+		railRight.userData.endPosition = v( 0.658 * length, railRight.geometry.boundingBox.min.x + height, railRight.geometry.boundingBox.min.y + width );
 
 		railLeft = oneToSeveralTable.children[ 24 ];
 		railLeft.userData.startRotation = railLeft.rotation.clone();
 		railLeft.userData.endRotation = v( 0, pi / 2, pi / 2 );
 		railLeft.userData.startPosition = railLeft.position.clone();
-		railLeft.userData.endPosition = v( 0.3333 * length, height - railLeft.geometry.boundingBox.max.x, - railRight.geometry.boundingBox.min.y  );
+		railLeft.userData.endPosition = v( 0.329 * length, height - railLeft.geometry.boundingBox.max.x, - railRight.geometry.boundingBox.min.y  );
 
 		foot1 = oneToSeveralTable.children[ 6] ;
 		foot1.userData.startRotation = foot1.rotation.clone();

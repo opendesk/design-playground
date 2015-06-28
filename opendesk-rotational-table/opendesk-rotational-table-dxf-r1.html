@@ -204,10 +204,9 @@
 
 	}
 
-
 	function drawShapesWithHoles() {
 
-		material = new THREE.MeshNormalMaterial();
+		material = new THREE.MeshNormalMaterial( { opacity: 0.7, transparent: true } );
 		var id = 0;
 		var plineHoles;
 
@@ -424,7 +423,7 @@
 		var oData = obj.userData;
 
 		if ( obj.position.distanceTo( obj.userData.startPosition ) < 1 ) {
-console.log( obj );
+//console.log( obj );
 
 //rotationalTable.children[ 0 ].position.z = rotationalTable.children[ 0 ].userData.endPosition.z;
 
