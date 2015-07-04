@@ -39,6 +39,8 @@
 
 	var itemCount = 0;
 
+	var offsetX = -1000;
+
 	var xmlHttp;
 
 	var raycaster;
@@ -64,7 +66,7 @@
 			'<a id=i href=http://opendesk.github.io/design-playground/ >&#x24D8;</a>' +
 			'<p><button onclick=assembleQuicklyTween(); >Assemble</button> ' +
 			'<button onclick=returnAllToStartTween(); >Disassemble</button></p>' +
-			'<p>Click objects to assemble/disassemble. Only chair 1 works.</p>' +
+			'<p>Click any part to assemble/disassemble.</p>' +
 			'<div id=msg1 ></div>' +
 			'<div id=msg2 >Extracted data:<br></div>' +
 		'';
@@ -314,9 +316,26 @@
 		} else {
 
 			addTweens();
-			drawDeskTop()
+			drawDeskTop();
+			extraBits();
 
 		}
+
+	}
+
+	function extraBits() {
+		bits = [ 38, 40, 42, 44, 60, 62, 64, 66, 68, 70, 72, 74 ];
+
+		for ( var i = 0; i < bits.length; i++ ) {
+			var bit = standingDesk.children[ bits[ i ] ];
+			bit.userData.startRotation = bit.rotation.clone();
+			bit.userData.startPosition = bit.position.clone();
+
+			bit.userData.endRotation = v( 0, pi/2, 0 );
+			bit.userData.endPosition = v( 100 * i, 1000 - bit.geometry.boundingBox.min.y, 3000 - bit.geometry.boundingBox.min.z );
+			components.push( bit );
+		}
+bit
 
 	}
 
@@ -325,47 +344,42 @@
 		var vect, angle;
 		var depth = 668;
 
-
-
 		deskTop = standingDesk.children[ 4 ];
 		deskTop.userData.startRotation = deskTop.rotation.clone();
 		deskTop.userData.endRotation = v( pi/2, 0, -pi/2 );
 		deskTop.userData.startPosition = deskTop.position.clone();
-		deskTop.userData.endPosition = v( - deskTop.geometry.boundingBox.min.y, heightTop + thickness + deskTop.geometry.boundingBox.min.z, forwardTop + deskTop.geometry.boundingBox.max.x );
+		deskTop.userData.endPosition = v( offsetX - deskTop.geometry.boundingBox.min.y, heightTop + thickness + deskTop.geometry.boundingBox.min.z, forwardTop + deskTop.geometry.boundingBox.max.x );
 
 		deskRailFrontBack = standingDesk.children[ 76 ];
 		deskRailFrontBack.userData.startRotation = deskRailFrontBack.rotation.clone();
 		deskRailFrontBack.userData.endRotation = v( 0, 0, -pi/2 );
 		deskRailFrontBack.userData.startPosition = deskRailFrontBack.position.clone();
-		deskRailFrontBack.userData.endPosition = v( - deskRailFrontBack.geometry.boundingBox.min.y, heightTop + deskRailFrontBack.geometry.boundingBox.min.x, 700 );
+		deskRailFrontBack.userData.endPosition = v( offsetX - deskRailFrontBack.geometry.boundingBox.min.y, heightTop + deskRailFrontBack.geometry.boundingBox.min.x, 700 );
 
 		deskRailFrontMid = standingDesk.children[ 18 ];
 		deskRailFrontMid.userData.startRotation = deskRailFrontMid.rotation.clone();
 		deskRailFrontMid.userData.endRotation = v( 0, 0, -pi/2 );
 		deskRailFrontMid.userData.startPosition = deskRailFrontMid.position.clone();
-		deskRailFrontMid.userData.endPosition = v( - deskRailFrontMid.geometry.boundingBox.min.y, -9 + heightTop + deskRailFrontMid.geometry.boundingBox.min.x, 700 - thickness );
+		deskRailFrontMid.userData.endPosition = v( offsetX - deskRailFrontMid.geometry.boundingBox.min.y, -9 + heightTop + deskRailFrontMid.geometry.boundingBox.min.x, 700 - thickness );
 
 		deskRailFrontFront = standingDesk.children[ 20 ];
 		deskRailFrontFront.userData.startRotation = deskRailFrontFront.rotation.clone();
 		deskRailFrontFront.userData.endRotation = v( 0, 0, -pi/2 );
 		deskRailFrontFront.userData.startPosition = deskRailFrontFront.position.clone();
-		deskRailFrontFront.userData.endPosition = v( - deskRailFrontFront.geometry.boundingBox.min.y, heightTop + deskRailFrontFront.geometry.boundingBox.min.x, 700 + thickness );
+		deskRailFrontFront.userData.endPosition = v( offsetX - deskRailFrontFront.geometry.boundingBox.min.y, heightTop + deskRailFrontFront.geometry.boundingBox.min.x, 700 + thickness );
 
 
 		deskRailBackFront = standingDesk.children[ 52 ];
 		deskRailBackFront.userData.startRotation = deskRailBackFront.rotation.clone();
 		deskRailBackFront.userData.endRotation = v( 0, 0, pi/2 );
 		deskRailBackFront.userData.startPosition = deskRailBackFront.position.clone();
-		deskRailBackFront.userData.endPosition = v( deskRailBackFront.geometry.boundingBox.max.y, heightTop - deskRailBackFront.geometry.boundingBox.max.x, thickness + 200 + forwardTop );
+		deskRailBackFront.userData.endPosition = v( offsetX + deskRailBackFront.geometry.boundingBox.max.y, heightTop - deskRailBackFront.geometry.boundingBox.max.x, thickness + 200 + forwardTop );
 
 		deskRailBackBack = standingDesk.children[ 78 ];
 		deskRailBackBack.userData.startRotation = deskRailBackBack.rotation.clone();
 		deskRailBackBack.userData.endRotation = v( 0, 0, -pi/2 );
 		deskRailBackBack.userData.startPosition = deskRailBackBack.position.clone();
-		deskRailBackBack.userData.endPosition = v( - deskRailBackBack.geometry.boundingBox.min.y, 9 + heightTop + deskRailBackBack.geometry.boundingBox.min.x, 200 + forwardTop );
-
-
-
+		deskRailBackBack.userData.endPosition = v( offsetX - deskRailBackBack.geometry.boundingBox.min.y, 9 + heightTop + deskRailBackBack.geometry.boundingBox.min.x, 200 + forwardTop );
 
 
 		bracketLeftOut = standingDesk.children[ 26 ];
@@ -380,7 +394,7 @@
 //console.log( 'a1', angle2 );
 
 		bracketLeftOut.userData.endRotation = v( 0, pi/2, pi - angle2 );
-		bracketLeftOut.userData.endPosition = v( 0, -1764, -1420 );
+		bracketLeftOut.userData.endPosition = v( offsetX, -1764, -1420 );
 
 
 		bracketLeftMid = standingDesk.children[ 28 ];
@@ -395,7 +409,7 @@
 //console.log( 'a2', angle2 );
 
 		bracketLeftMid.userData.endRotation = v( 0, pi/2, - angle2 );
-		bracketLeftMid.userData.endPosition = v( thickness, -330 , -2330 );
+		bracketLeftMid.userData.endPosition = v( offsetX + thickness, -330 , -2330 );
 
 
 		bracketLeftIn = standingDesk.children[ 30 ];
@@ -410,7 +424,7 @@
 //console.log( 'a3', angle2 );
 
 		bracketLeftIn.userData.endRotation = v( 0, pi/2, - angle2 );
-		bracketLeftIn.userData.endPosition = v( 2 * thickness, -1200 , -1940 );
+		bracketLeftIn.userData.endPosition = v( offsetX + 2 * thickness, -1200 , -1940 );
 
 
 
@@ -426,7 +440,7 @@
 //console.log( 'a1', angle2 );
 
 		bracketRightOut.userData.endRotation = v( pi, -pi/2, pi - angle2 );
-		bracketRightOut.userData.endPosition = v( width, 1220, 3185 );
+		bracketRightOut.userData.endPosition = v( offsetX + width, 1220, 3185 );
 
 
 		bracketRightMid = standingDesk.children[ 34 ];
@@ -441,8 +455,7 @@
 //console.log( 'a2', angle2 );
 
 		bracketRightMid.userData.endRotation = v( 0, - pi/2, pi + pi/2 - angle2 );
-		bracketRightMid.userData.endPosition = v( - thickness + width, 190, 3130 );
-
+		bracketRightMid.userData.endPosition = v( offsetX - thickness + width, 190, 3130 );
 
 
 		bracketRightIn = standingDesk.children[ 36 ];
@@ -457,8 +470,7 @@
 //console.log( 'a3', angle2 );
 
 		bracketRightIn.userData.endRotation = v( 0, -pi/2, - angle2 );
-		bracketRightIn.userData.endPosition = v( - 2 * thickness + width, 800, 3150 );
-
+		bracketRightIn.userData.endPosition = v( offsetX - 2 * thickness + width, 800, 3160 );
 
 
 		components.push( deskTop, deskRailFrontBack, deskRailFrontMid, deskRailFrontFront, deskRailBackFront, deskRailBackBack, 
@@ -481,38 +493,38 @@
 		legsLeftOut.userData.startRotation = legsLeftOut.rotation.clone();
 		legsLeftOut.userData.endRotation = v( 0, - pi/2, 0 );
 		legsLeftOut.userData.startPosition = legsLeftOut.position.clone();
-		legsLeftOut.userData.endPosition = v( thickness, - legsLeftOut.geometry.boundingBox.min.y, - legsLeftOut.geometry.boundingBox.min.x  );
+		legsLeftOut.userData.endPosition = v( offsetX + thickness, - legsLeftOut.geometry.boundingBox.min.y, - legsLeftOut.geometry.boundingBox.min.x  );
 
 		legsLeftIn = standingDesk.children[ 50 ];
 		legsLeftIn.userData.startRotation = legsLeftIn.rotation.clone();
 		legsLeftIn.userData.endRotation = v( 0, -pi/2, pi );
 		legsLeftIn.userData.startPosition = legsLeftIn.position.clone();
-		legsLeftIn.userData.endPosition = v( 2 * thickness, legsLeftIn.geometry.boundingBox.max.y, legsLeftIn.geometry.boundingBox.max.x   );
+		legsLeftIn.userData.endPosition = v( offsetX + 2 * thickness, legsLeftIn.geometry.boundingBox.max.y, legsLeftIn.geometry.boundingBox.max.x   );
 
 		legsRightOut = standingDesk.children[ 54 ];
 		legsRightOut.userData.startRotation = legsRightOut.rotation.clone();
 		legsRightOut.userData.endRotation = v( 0, pi/2, pi );
 		legsRightOut.userData.startPosition = legsRightOut.position.clone();
-		legsRightOut.userData.endPosition = v( width  - thickness, legsRightOut.geometry.boundingBox.max.y, - legsRightOut.geometry.boundingBox.min.x  );
+		legsRightOut.userData.endPosition = v( offsetX + width - thickness, legsRightOut.geometry.boundingBox.max.y, - legsRightOut.geometry.boundingBox.min.x  );
 
 		legsRightIn = standingDesk.children[ 56 ];
 		legsRightIn.userData.startRotation = legsRightIn.rotation.clone();
 		legsRightIn.userData.endRotation = v( 0, pi/2, 0 );
 		legsRightIn.userData.startPosition = legsRightIn.position.clone();
-		legsRightIn.userData.endPosition = v( width - 2 * thickness, - legsRightIn.geometry.boundingBox.min.y, legsRightIn.geometry.boundingBox.max.x  );
+		legsRightIn.userData.endPosition = v( offsetX + width - 2 * thickness, - legsRightIn.geometry.boundingBox.min.y, legsRightIn.geometry.boundingBox.max.x  );
 
 
 		legsRailLowFront = standingDesk.children[ 22 ];
 		legsRailLowFront.userData.startRotation = legsRailLowFront.rotation.clone();
 		legsRailLowFront.userData.endRotation = v( 0, 0, pi/2 );
 		legsRailLowFront.userData.startPosition = legsRailLowFront.position.clone();
-		legsRailLowFront.userData.endPosition = v( legsRailLowFront.geometry.boundingBox.max.y, 120 - legsRailLowFront.geometry.boundingBox.min.x, 10 );
+		legsRailLowFront.userData.endPosition = v( offsetX + legsRailLowFront.geometry.boundingBox.max.y, 120 - legsRailLowFront.geometry.boundingBox.min.x, 10 );
 
 		legsRailLowBack = standingDesk.children[ 24 ];
 		legsRailLowBack.userData.startRotation = legsRailLowBack.rotation.clone();
 		legsRailLowBack.userData.endRotation = v( 0, 0, pi/2 );
 		legsRailLowBack.userData.startPosition = legsRailLowBack.position.clone();
-		legsRailLowBack.userData.endPosition = v( legsRailLowBack.geometry.boundingBox.max.y, 120 - legsRailLowBack.geometry.boundingBox.min.x, 10 + thickness );
+		legsRailLowBack.userData.endPosition = v( offsetX + legsRailLowBack.geometry.boundingBox.max.y, 120 - legsRailLowBack.geometry.boundingBox.min.x, 10 + thickness );
 
 
 
@@ -520,52 +532,56 @@
 		legsRailMidFront.userData.startRotation = legsRailMidFront.rotation.clone();
 		legsRailMidFront.userData.endRotation = v( -pi/4, 0, pi/2 );
 		legsRailMidFront.userData.startPosition = legsRailMidFront.position.clone();
-		legsRailMidFront.userData.endPosition = v( legsRailMidFront.geometry.boundingBox.max.y, -380, 980 );
+		legsRailMidFront.userData.endPosition = v( offsetX + legsRailMidFront.geometry.boundingBox.max.y, -380, 980 );
 
 		legsRailMidBack = standingDesk.children[ 16 ];
 		legsRailMidBack.userData.startRotation = legsRailMidBack.rotation.clone();
 		legsRailMidBack.userData.endRotation = v( pi/4, 0, pi/2 );
 		legsRailMidBack.userData.startPosition = legsRailMidBack.position.clone();
-		legsRailMidBack.userData.endPosition = v( legsRailMidBack.geometry.boundingBox.max.y, -300, -920 );
+		legsRailMidBack.userData.endPosition = v( offsetX + legsRailMidBack.geometry.boundingBox.max.y, -300, -920 );
 
-
+		legsRailMidBracket = standingDesk.children[ 80 ];
+		legsRailMidBracket.userData.startRotation = legsRailMidBracket.rotation.clone();
+		legsRailMidBracket.userData.endRotation = v( pi/4, pi/2, 0 );
+		legsRailMidBracket.userData.startPosition = legsRailMidBracket.position.clone();
+		legsRailMidBracket.userData.endPosition = v( offsetX + 0.5 * width, -2070, -1120 );
 
 
 		shelfTopUp = standingDesk.children[ 8 ];
 		shelfTopUp.userData.startRotation = shelfTopUp.rotation.clone();
 		shelfTopUp.userData.endRotation = v( pi/2, 0, -pi/2 );
 		shelfTopUp.userData.startPosition = shelfTopUp.position.clone();
-		shelfTopUp.userData.endPosition = v( - shelfTopUp.geometry.boundingBox.min.y, height + shelfTopUp.geometry.boundingBox.min.z, shelfTopUp.geometry.boundingBox.max.x );
+		shelfTopUp.userData.endPosition = v( offsetX - shelfTopUp.geometry.boundingBox.min.y, height + shelfTopUp.geometry.boundingBox.min.z, shelfTopUp.geometry.boundingBox.max.x );
 
 		shelfTopDown = standingDesk.children[ 10 ];
 		shelfTopDown.userData.startRotation = shelfTopDown.rotation.clone();
 		shelfTopDown.userData.endRotation = v( pi/2, 0, -pi/2 );
 		shelfTopDown.userData.startPosition = shelfTopDown.position.clone();
-		shelfTopDown.userData.endPosition = v( thickness - shelfTopDown.geometry.boundingBox.min.y, height + shelfTopDown.geometry.boundingBox.max.z - 2 * thickness, shelfTopDown.geometry.boundingBox.max.x );
+		shelfTopDown.userData.endPosition = v( offsetX + thickness - shelfTopDown.geometry.boundingBox.min.y, height + shelfTopDown.geometry.boundingBox.max.z - 2 * thickness, shelfTopDown.geometry.boundingBox.max.x );
 
 		shelfMidUp = standingDesk.children[ 12 ];
 		shelfMidUp.userData.startRotation = shelfMidUp.rotation.clone();
 		shelfMidUp.userData.endRotation = v( pi/2, 0, pi/2 );
 		shelfMidUp.userData.startPosition = shelfMidUp.position.clone();
-		shelfMidUp.userData.endPosition = v( shelfMidUp.geometry.boundingBox.max.y, thickness + 875 + shelfMidUp.geometry.boundingBox.min.z, - shelfMidUp.geometry.boundingBox.min.x );
+		shelfMidUp.userData.endPosition = v( offsetX + shelfMidUp.geometry.boundingBox.max.y, thickness + 875 + shelfMidUp.geometry.boundingBox.min.z, - shelfMidUp.geometry.boundingBox.min.x );
 
 		shelfMidDown = standingDesk.children[ 14 ];
 		shelfMidDown.userData.startRotation = shelfMidDown.rotation.clone();
 		shelfMidDown.userData.endRotation = v( pi/2, 0, -pi/2 );
 		shelfMidDown.userData.startPosition = shelfMidDown.position.clone();
-		shelfMidDown.userData.endPosition = v( - shelfMidDown.geometry.boundingBox.min.y, 875  + shelfMidDown.geometry.boundingBox.min.z, shelfMidDown.geometry.boundingBox.max.x );
+		shelfMidDown.userData.endPosition = v( offsetX - shelfMidDown.geometry.boundingBox.min.y, 875  + shelfMidDown.geometry.boundingBox.min.z, shelfMidDown.geometry.boundingBox.max.x );
 
 		shelfLowUp = standingDesk.children[ 2 ];
 		shelfLowUp.userData.startRotation = shelfLowUp.rotation.clone();
 		shelfLowUp.userData.endRotation = v( pi/2, 0, pi/2 );
 		shelfLowUp.userData.startPosition = shelfLowUp.position.clone();
-		shelfLowUp.userData.endPosition = v( shelfLowUp.geometry.boundingBox.max.y, thickness + heightTop + shelfLowUp.geometry.boundingBox.min.z, 100 - shelfLowUp.geometry.boundingBox.min.x );
+		shelfLowUp.userData.endPosition = v( offsetX + shelfLowUp.geometry.boundingBox.max.y, thickness + heightTop + shelfLowUp.geometry.boundingBox.min.z, 100 - shelfLowUp.geometry.boundingBox.min.x );
 
 		shelfLowDown = standingDesk.children[ 6 ];
 		shelfLowDown.userData.startRotation = shelfLowDown.rotation.clone();
 		shelfLowDown.userData.endRotation = v( pi/2, 0, -pi/2 );
 		shelfLowDown.userData.startPosition = shelfLowDown.position.clone();
-		shelfLowDown.userData.endPosition = v( - shelfLowDown.geometry.boundingBox.min.y, heightTop + shelfLowDown.geometry.boundingBox.min.z, 100 + shelfLowDown.geometry.boundingBox.max.x );
+		shelfLowDown.userData.endPosition = v( offsetX - shelfLowDown.geometry.boundingBox.min.y, heightTop + shelfLowDown.geometry.boundingBox.min.z, 100 + shelfLowDown.geometry.boundingBox.max.x );
 
 
 
@@ -573,17 +589,17 @@
 		backingRight.userData.startRotation = backingRight.rotation.clone();
 		backingRight.userData.endRotation = v( 0, 0, 0 );
 		backingRight.userData.startPosition = backingRight.position.clone();
-		backingRight.userData.endPosition = v( width - backingRight.geometry.boundingBox.max.x, 875 - backingRight.geometry.boundingBox.min.y, 0 );
+		backingRight.userData.endPosition = v( offsetX + width - backingRight.geometry.boundingBox.max.x, 875 - backingRight.geometry.boundingBox.min.y, 0 );
 
 		backingLeft = standingDesk.children[ 58 ];
 		backingLeft.userData.startRotation = backingLeft.rotation.clone();
 		backingLeft.userData.endRotation = v( 0, 0, pi );
 		backingLeft.userData.startPosition = backingLeft.position.clone();
-		backingLeft.userData.endPosition = v( backingLeft.geometry.boundingBox.max.x, 875 + backingLeft.geometry.boundingBox.max.y, 0 );
+		backingLeft.userData.endPosition = v( offsetX + backingLeft.geometry.boundingBox.max.x, 875 + backingLeft.geometry.boundingBox.max.y, 0 );
 
 
 		components = [ legsLeftOut, legsLeftIn, legsRightOut, legsRightIn, shelfTopUp, shelfTopDown, shelfMidUp, shelfMidDown, shelfLowUp, shelfLowDown, 
-			backingRight, backingLeft, legsRailLowFront, legsRailLowBack, legsRailMidFront, legsRailMidBack
+			backingRight, backingLeft, legsRailLowFront, legsRailLowBack, legsRailMidFront, legsRailMidBack, legsRailMidBracket
 
 		];
 
