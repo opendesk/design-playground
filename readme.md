@@ -33,6 +33,11 @@ Scripts that read 2D DXF files downloaded from [OpenDesk]( http://opendesk.cc ) 
 * Assembled components positioned by algorithm ~ except for angled components
 * Latest update: 2015-07-04
 * [Original design]( https://www.opendesk.cc/lean/standing-desk ) by [Joni Steiner]( https://www.opendesk.cc/designers/joni-steiner ) and [Nick Ierodiaconou]( https://www.opendesk.cc/designers/nick-ierodiaconou )
+* Does not yet show pockets or alignment holes
+* Minor parts are not positioned at all
+* Rotation of some parts is incorrect
+* R1 is is a reverse-engineered best guess as to the positions of the various parts in the design. Bug reports will be much appreciated.   
+
 
 ### [OpenDesk 5 to 30 Minute Chair DXF]( http://opendesk.github.io/design-playground/opendesk-5-to-30-minute-chair/latest/ )
 
