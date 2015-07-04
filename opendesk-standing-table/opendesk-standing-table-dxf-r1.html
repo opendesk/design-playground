@@ -1,0 +1,703 @@
+<!doctype html>
+<html lang=en >
+<head>
+<title>OpenDesk Standing Desk DXF R1</title>
+<meta charset=utf-8 />
+<meta name=viewport content='width=device-width,user-scalable=no,minimum-scale=1.0,maximum-scale=1.0' />
+</head>
+<body>
+<script src=http://mrdoob.github.io/three.js/build/three.min.js ></script>
+<script src=http://mrdoob.github.io/three.js/examples/js/controls/OrbitControls.js ></script>
+<script src=http://mrdoob.github.io/three.js/examples/js/libs/stats.min.js ></script>
+<script src=http://mrdoob.github.com/three.js/examples/js/libs/tween.min.js ></script>
+<script>
+
+	var fileNames = [
+		'../OD-51937-Standing-Desk-1.1.0/Standing-Desk.Cutting-Files-Sheet-1.dxf',
+		'../OD-51937-Standing-Desk-1.1.0/Standing-Desk.Cutting-Files-Sheet-2.dxf',
+		'../OD-51937-Standing-Desk-1.1.0/Standing-Desk.Cutting-Files-Sheet-3.dxf'
+	];
+
+	var thickness = 20;
+
+	var layer;
+	var layers = [];
+	var layersSearch = false;
+
+	var polylines;
+	var polylinesSearch;
+	var polylinesCount;
+
+	var holes;
+	var holesCount;
+
+	var fileCount = 0;
+	var standingDesk;
+
+	var componentsHoles = [];
+
+	var itemCount = 0;
+
+	var xmlHttp;
+
+	var raycaster;
+	var mouse;
+	var pi = Math.PI;
+
+	var info, stats, renderer, scene, camera, controls;
+	var geometry, material, mesh;
+
+	init();
+	animate();
+
+	function init() {
+
+		css = document.head.appendChild( document.createElement('style') );
+		css.innerHTML ='body { font: 600 12pt monospace; margin: 0; overflow: hidden; }' +
+			'#i {text-decoration: none; }' +
+		'';
+
+		var info = document.body.appendChild( document.createElement( 'div' ) );
+		info.style.cssText = ' margin: 0 10px; max-height: ' + (window.innerHeight - 50) + 'px; max-width: 270px; overflow: auto; position: absolute; ';
+		info.innerHTML = '<h3 style=margin:0; ><a href="" >' + document.title + '</a> - ' +
+			'<a id=i href=http://opendesk.github.io/design-playground/ >&#x24D8;</a>' +
+			'<p><button onclick=assembleQuicklyTween(); >Assemble</button> ' +
+			'<button onclick=returnAllToStartTween(); >Disassemble</button></p>' +
+			'<p>Click objects to assemble/disassemble. Only chair 1 works.</p>' +
+			'<div id=msg1 ></div>' +
+			'<div id=msg2 >Extracted data:<br></div>' +
+		'';
+
+// Heads Up
+		headsUp = document.body.appendChild( document.createElement( 'div' ) );
+		headsUp.style.cssText = 'background-color: #ddd; border-radius: 8px; padding: 0 5px 10px 5px; opacity: 0.85; ' +
+			'position: absolute; left: 50px; text-align: left; z-index: 10;';
+
+		stats = new Stats();
+		stats.domElement.style.cssText = 'position: absolute; right: 0; top: 0; z-index: 100; ';
+		document.body.appendChild( stats.domElement );
+
+		renderer = new THREE.WebGLRenderer( { alpha: 1, antialias: true, clearColor: 0xffffff }  );
+		renderer.setSize( window.innerWidth, window.innerHeight );
+		document.body.appendChild( renderer.domElement );
+
+		camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 100000 );
+		camera.position.set( 3000, 3000, 3000 );
+
+		controls = new THREE.OrbitControls( camera, renderer.domElement );
+
+		scene = new THREE.Scene();
+
+// axes
+		var axisHelper = new THREE.AxisHelper( 500 );
+		scene.add( axisHelper );
+
+		particleMaterial = new THREE.SpriteMaterial( { color: 0xff0000 } );
+
+		raycaster = new THREE.Raycaster();
+		mouse = new THREE.Vector2();
+
+		renderer.domElement.addEventListener( 'mousedown', onDocumentMouseDown, false );
+		renderer.domElement.addEventListener( 'touchstart', onDocumentTouchStart, false ); // for mobile
+
+		window.addEventListener( 'resize', onWindowResize, false );
+
+		standingDesk = new THREE.Object3D();
+		scene.add( standingDesk );
+
+		requestFile();
+
+	}
+
+	function readDXF( text ) {
+
+		lines = text.split(/\r\n|\n/);
+
+		var layer;
+		layers = [];
+		layersSearch = false;
+
+		var polyline
+		polylines = [];
+		polylinesSearch = false;
+		polylinesCount = -1;
+
+		holes = [];
+		holesCount = -1;
+
+		for ( var i = 0; i < lines.length; i++ ) {
+
+			var l = lines[ i ];
+
+			if ( l === 'LAYER' ) {
+
+				layersSearch = true;
+
+			} else if ( layersSearch === true && l === '  2' ) {
+
+				layers.push( lines[ i + 1 ] );
+
+				layersSearch = false;
+
+			}
+
+			if ( l === 'LWPOLYLINE' ) {
+
+				polylinesSearch = true;
+
+				startLine = i;
+
+			}
+
+			if ( polylinesSearch === true ) {
+
+				if ( l === '  5' ) {
+
+					id = lines[ i + 1 ];
+
+				} else if ( l === '  8' ) {
+
+					layer = lines[ i + 1 ];
+
+// ["0", "00-NOPRINT_TEXT", "00_NOPRINT_TOLERANCE", "BOARD_$TH-NOMINAL",
+// "TOP-CUT-OUTSIDE_18MM", "TOP-CUT-INSIDE_18MM", "TOP-POCKET-INSIDE_04MM", "TOP-POCKET-INSIDE_09MM", "TOP-HOLE-6MM-DIAM_14MM"]
+//
+
+					if ( layer === 'TOP-CUT-OUTSIDE_18MM' ) {
+
+						polylines[ ++polylinesCount ] = {};
+
+						polyline = polylines[ polylinesCount ];
+
+						polyline.id = id;
+
+						polyline.startLine = startLine;
+
+						polyline.layer = layer;
+
+						polyline.vertices = [];
+
+					} else if ( layer === 'TOP-CUT-INSIDE_18MM'  ) {
+
+						holes[ ++holesCount ] = {};
+
+						polyline = holes[ holesCount ];
+
+						polyline.id = id;
+
+						polyline.startLine = startLine;
+
+						polyline.layer = layer;
+
+						polyline.vertices = [];
+
+					}
+
+				} else if ( polylinesSearch === true && l === ' 10' && ( layer === 'TOP-CUT-OUTSIDE_18MM' || layer === 'TOP-CUT-INSIDE_18MM' ) ) {
+
+					polyline.vertices.push( v( + lines[ i + 1] , + lines[ i + 3 ], + lines[ i + 5 ] ) ); // +  sign forces string to number
+
+				} else if ( polylinesSearch === true && l === '  0' ) {
+
+					polylinesSearch = false;
+
+				}
+
+			}
+
+		}
+
+		drawShapesWithHoles();
+
+		msg1.innerHTML = '<p>File loaded: ' +fileName + '<p>';
+
+	}
+
+
+	function drawShapesWithHoles() {
+
+		material = new THREE.MeshNormalMaterial();
+		var plineHoles;
+
+		for ( var i = 0; i < 0.5 * polylines.length; i++ ) {
+
+			firstBB = new THREE.Box3().setFromPoints( polylines[ i ].vertices );
+
+			plineHoles = [];
+
+			for ( var j = 0; j < holes.length; j++ ) {
+
+				secondBB = new THREE.Box3().setFromPoints( holes[ j ].vertices );
+
+				if ( firstBB.containsBox( secondBB ) === true ) {
+
+					plineHoles.push( holes[ j ] );
+
+				}
+
+			}
+
+			var shape = new THREE.Shape();
+			shape.fromPoints( polylines[ i ].vertices );
+			var holePath;
+
+			for ( j = 0; j < plineHoles.length; j++ ) {
+
+				holePath = new THREE.Path();
+				holePath.fromPoints(  plineHoles[ j ].vertices );
+				shape.holes.push( holePath );
+
+			}
+
+			geometry = shape.extrude( { amount: thickness, bevelEnabled: false} );
+			geometry.computeBoundingBox();
+
+			mesh = new THREE.Mesh( geometry, material );
+
+			mesh.userData.polyline = polylines[ i ];
+			mesh.userData.polylineID = i;
+			mesh.userData.componentID = itemCount;
+			mesh.userData.dxfID = polylines[ i ].id;
+			mesh.userData.layer = polylines[ i ].layer;
+			mesh.userData.startLine = polylines[ i ].startLine;
+			mesh.userData.name = 'Standing Desk DXF ' + ( 1 + fileCount);
+
+			if ( mesh.userData.name === 'Standing Desk DXF 1' ) {
+
+				mesh.position.set( -2000, -3000, -500 );
+
+			} else if ( mesh.userData.name === 'Standing Desk DXF 2' ) {
+
+				mesh.position.set( -500, -3000, -500 );
+
+			} else {
+
+				mesh.position.set( 1000, -3000, -500 );
+
+			}
+
+			standingDesk.add( mesh );
+
+			edges = new THREE.EdgesHelper( mesh, 0x333333 );
+			standingDesk.add( edges );
+
+			msg2.innerHTML += '<small>Component ' + itemCount + '<br>' +
+				'bbox x:' + ( geometry.boundingBox.max.x - geometry.boundingBox.min.x ).toFixed( 5 )  + ' y:' + ( geometry.boundingBox.max.y - geometry.boundingBox.min.y ).toFixed( 5 ) + '<br></small>';
+
+			itemCount += 2;
+
+		}
+
+		if ( ++fileCount < fileNames.length ) {
+
+			requestFile();
+
+		} else {
+
+			addTweens();
+			drawDeskTop()
+
+		}
+
+	}
+
+	function drawDeskTop() {
+
+		var vext, angle;
+		var depth = 668;
+
+		bracketLeftOut = standingDesk.children[ 26 ].geometry;
+		vertex1 = bracketLeftOut.vertices[ 1 ].clone();
+		vertex2 = bracketLeftOut.vertices[ 0 ].clone();
+
+		vect = vertex1.clone().sub( vertex2 )
+		angle = vect.angleTo( v( 1, 0, 0 ) )
+
+console.log( angle );
+
+
+		bracketLeftOut.applyMatrix( new THREE.Matrix4().makeRotationZ( angle ) );
+		bracketLeftOut.applyMatrix( new THREE.Matrix4().makeRotationY( pi/2 ) );
+		pt = bracketLeftOut.vertices[ 0 ].clone();
+		bracketLeftOut.applyMatrix( new THREE.Matrix4().makeTranslation( -1000 - pt.x, heightTop + 3000 - pt.y, forwardTop + depth + 500 - pt.z ) );
+
+
+
+		bracketLeftMid = standingDesk.children[ 28 ].geometry;
+		vertex1 = bracketLeftMid.vertices[ 20 ].clone();
+		vertex2 = bracketLeftMid.vertices[ 21 ].clone();
+
+		vect = vertex1.clone().sub( vertex2 )
+		angle = vect.angleTo( v( 1, 0, 0 ) );
+
+console.log( angle );
+
+		bracketLeftMid.applyMatrix( new THREE.Matrix4().makeRotationZ( 1.48 ) );
+		bracketLeftMid.applyMatrix( new THREE.Matrix4().makeRotationY( pi/2 ) );
+		pt = bracketLeftMid.vertices[ 20 ]
+		bracketLeftMid.applyMatrix( new THREE.Matrix4().makeTranslation( thickness - 1000 - pt.x, heightTop + 3000 - pt.y, forwardTop + depth + 500 - pt.z ) );
+
+
+		bracketLeftIn = standingDesk.children[ 30 ].geometry;
+		vertex1 = bracketLeftIn.vertices[ 4 ];
+		vertex2 = bracketLeftIn.vertices[ 5 ];
+
+		vect = vertex1.clone().sub( vertex2 );
+		angle = vect.angleTo( v( 1, 0, 0 ) );
+
+console.log( angle );
+
+		bracketLeftIn.applyMatrix( new THREE.Matrix4().makeRotationZ( 1.2 ) );
+		bracketLeftIn.applyMatrix( new THREE.Matrix4().makeRotationY( pi/2 ) );
+		pt = bracketLeftIn.vertices[ 4 ].clone();
+		bracketLeftIn.applyMatrix( new THREE.Matrix4().makeTranslation( 2 * thickness + -1000 - pt.x, heightTop + 3000 - pt.y, -240 + forwardTop + depth + 500 - pt.z ) );
+
+
+	}
+
+	function addTweens() {
+
+		width = 2400;
+		heightTop = 770;
+		forwardTop = 230;
+
+		legsLeftOut = standingDesk.children[ 48 ];
+
+		depth = legsLeftOut.geometry.boundingBox.max.x - legsLeftOut.geometry.boundingBox.min.x;
+		height = legsLeftOut.geometry.boundingBox.max.y - legsLeftOut.geometry.boundingBox.min.y;
+
+		legsLeftOut.userData.startRotation = legsLeftOut.rotation.clone();
+		legsLeftOut.userData.endRotation = v( 0, - pi/2, 0 );
+		legsLeftOut.userData.startPosition = legsLeftOut.position.clone();
+		legsLeftOut.userData.endPosition = v( thickness, - legsLeftOut.geometry.boundingBox.min.y, - legsLeftOut.geometry.boundingBox.min.x  );
+
+		legsLeftIn = standingDesk.children[ 50 ];
+
+		legsLeftIn.userData.startRotation = legsLeftIn.rotation.clone();
+		legsLeftIn.userData.endRotation = v( 0, -pi/2, pi );
+		legsLeftIn.userData.startPosition = legsLeftIn.position.clone();
+		legsLeftIn.userData.endPosition = v( 2 * thickness, legsLeftIn.geometry.boundingBox.max.y, legsLeftIn.geometry.boundingBox.max.x   );
+
+
+		legsRightOut = standingDesk.children[ 54 ];
+
+		legsRightOut.userData.startRotation = legsRightOut.rotation.clone();
+		legsRightOut.userData.endRotation = v( 0, pi/2, pi );
+		legsRightOut.userData.startPosition = legsRightOut.position.clone();
+		legsRightOut.userData.endPosition = v( width  - thickness, legsRightOut.geometry.boundingBox.max.y, - legsRightOut.geometry.boundingBox.min.x  );
+
+		legsRightIn = standingDesk.children[ 56 ];
+
+		legsRightIn.userData.startRotation = legsRightIn.rotation.clone();
+		legsRightIn.userData.endRotation = v( 0, pi/2, 0 );
+		legsRightIn.userData.startPosition = legsRightIn.position.clone();
+		legsRightIn.userData.endPosition = v( width - 2 * thickness, - legsRightIn.geometry.boundingBox.min.y, legsRightIn.geometry.boundingBox.max.x  );
+
+		deskTop = standingDesk.children[ 4 ];
+
+		deskTop.userData.startRotation = deskTop.rotation.clone();
+		deskTop.userData.endRotation = v( pi/2, 0, -pi/2 );
+		deskTop.userData.startPosition = deskTop.position.clone();
+		deskTop.userData.endPosition = v( - deskTop.geometry.boundingBox.min.y, heightTop + thickness + deskTop.geometry.boundingBox.min.z, forwardTop + deskTop.geometry.boundingBox.max.x );
+
+
+		shelfTopUp = standingDesk.children[ 8 ];
+
+		shelfTopUp.userData.startRotation = shelfTopUp.rotation.clone();
+		shelfTopUp.userData.endRotation = v( pi/2, 0, -pi/2 );
+		shelfTopUp.userData.startPosition = shelfTopUp.position.clone();
+		shelfTopUp.userData.endPosition = v( - shelfTopUp.geometry.boundingBox.min.y, height + shelfTopUp.geometry.boundingBox.min.z, shelfTopUp.geometry.boundingBox.max.x );
+
+		shelfTopDown = standingDesk.children[ 10 ];
+
+		shelfTopDown.userData.startRotation = shelfTopDown.rotation.clone();
+		shelfTopDown.userData.endRotation = v( pi/2, 0, -pi/2 );
+		shelfTopDown.userData.startPosition = shelfTopDown.position.clone();
+		shelfTopDown.userData.endPosition = v( thickness - shelfTopDown.geometry.boundingBox.min.y, height + shelfTopDown.geometry.boundingBox.max.z - 2 * thickness, shelfTopDown.geometry.boundingBox.max.x );
+
+		shelfLowUp = standingDesk.children[ 12 ];
+
+		shelfLowUp.userData.startRotation = shelfLowUp.rotation.clone();
+		shelfLowUp.userData.endRotation = v( pi/2, 0, pi/2 );
+		shelfLowUp.userData.startPosition = shelfLowUp.position.clone();
+		shelfLowUp.userData.endPosition = v( shelfLowUp.geometry.boundingBox.max.y, thickness + 875 + shelfLowUp.geometry.boundingBox.min.z, - shelfLowUp.geometry.boundingBox.min.x );
+
+		shelfLowDown = standingDesk.children[ 14 ];
+
+		shelfLowDown.userData.startRotation = shelfLowDown.rotation.clone();
+		shelfLowDown.userData.endRotation = v( pi/2, 0, -pi/2 );
+		shelfLowDown.userData.startPosition = shelfLowDown.position.clone();
+		shelfLowDown.userData.endPosition = v( - shelfLowDown.geometry.boundingBox.min.y, 875  + shelfLowDown.geometry.boundingBox.min.z, shelfLowDown.geometry.boundingBox.max.x );
+
+		backingRight = standingDesk.children[ 46 ];
+
+		backingRight.userData.startRotation = backingRight.rotation.clone();
+		backingRight.userData.endRotation = v( 0, 0, 0 );
+		backingRight.userData.startPosition = backingRight.position.clone();
+		backingRight.userData.endPosition = v( width - backingRight.geometry.boundingBox.max.x, 875 - backingRight.geometry.boundingBox.min.y, 0 );
+
+		backingLeft = standingDesk.children[ 58 ];
+
+		backingLeft.userData.startRotation = backingLeft.rotation.clone();
+		backingLeft.userData.endRotation = v( 0, 0, pi );
+		backingLeft.userData.startPosition = backingLeft.position.clone();
+		backingLeft.userData.endPosition = v( backingLeft.geometry.boundingBox.max.x, 875 + backingLeft.geometry.boundingBox.max.y, 0 );
+
+		deskRailFrontBack = standingDesk.children[ 76 ];
+
+		deskRailFrontBack.userData.startRotation = deskRailFrontBack.rotation.clone();
+		deskRailFrontBack.userData.endRotation = v( 0, 0, -pi/2 );
+		deskRailFrontBack.userData.startPosition = deskRailFrontBack.position.clone();
+		deskRailFrontBack.userData.endPosition = v( - deskRailFrontBack.geometry.boundingBox.min.y, heightTop + deskRailFrontBack.geometry.boundingBox.min.x, 700 );
+
+		deskRailFrontMid = standingDesk.children[ 18 ];
+
+		deskRailFrontMid.userData.startRotation = deskRailFrontMid.rotation.clone();
+		deskRailFrontMid.userData.endRotation = v( 0, 0, -pi/2 );
+		deskRailFrontMid.userData.startPosition = deskRailFrontMid.position.clone();
+		deskRailFrontMid.userData.endPosition = v( - deskRailFrontMid.geometry.boundingBox.min.y, -9 + heightTop + deskRailFrontMid.geometry.boundingBox.min.x, 700 - thickness );
+
+		deskRailFrontFront = standingDesk.children[ 20 ];
+
+		deskRailFrontFront.userData.startRotation = deskRailFrontFront.rotation.clone();
+		deskRailFrontFront.userData.endRotation = v( 0, 0, -pi/2 );
+		deskRailFrontFront.userData.startPosition = deskRailFrontFront.position.clone();
+		deskRailFrontFront.userData.endPosition = v( - deskRailFrontFront.geometry.boundingBox.min.y, heightTop + deskRailFrontFront.geometry.boundingBox.min.x, 700 + thickness );
+
+
+		components = [ legsLeftOut, legsLeftIn, legsRightOut, legsRightIn, deskTop, shelfTopUp, shelfTopDown, shelfLowUp, shelfLowDown, 
+			backingRight, backingLeft, deskRailFrontBack, deskRailFrontMid, deskRailFrontFront
+
+		];
+
+	}
+
+	function onDocumentTouchStart( event ) {
+
+		event.preventDefault();
+
+		event.clientX = event.touches[0].clientX;
+		event.clientY = event.touches[0].clientY;
+		onDocumentMouseDown( event );
+
+	}
+
+	function onDocumentMouseDown( event ) {
+
+		event.preventDefault();
+
+		mouse.x = ( event.clientX / renderer.domElement.width ) * 2 - 1;
+		mouse.y = - ( event.clientY / renderer.domElement.height ) * 2 + 1;
+
+		raycaster.setFromCamera( mouse, camera );
+
+		var intersects = raycaster.intersectObjects( standingDesk.children );
+
+		if ( intersects.length > 0 ) {
+
+			intersected = intersects[ 0 ].object;
+//			intersected.material.color.setHex( Math.random() * 0xffffff );
+
+			verts = intersected.geometry.vertices;
+			dis = 1000000000;
+			ip = intersects[ 0 ].point;
+
+			for ( var i = 0; i < verts.length; i++ ) {
+
+				vert = verts[ i ].clone();
+				vert.applyMatrix4( intersected.matrixWorld );
+				d = vert.distanceTo( ip );
+				if ( d < dis ) {
+					dis = d;
+					pt = vert;
+				}
+
+			}
+
+			 particle = new THREE.Sprite( particleMaterial );
+
+			particle.position.copy( pt );
+			particle.scale.x = particle.scale.y = 0.5;
+			scene.add( particle );
+
+			headsUp.style.left = 50 + 0.5 * window.innerWidth + mouse.x * 0.5 * window.innerWidth + 'px';
+			headsUp.style.top = -10 + 0.5 * window.innerHeight - mouse.y * 0.5 * window.innerHeight + 'px';
+			headsUp.style.display = '';
+
+			headsUp.innerHTML  = '<h3 style="margin:0;" >Data Viewer</h3>' +
+
+				'DXF file:' + intersected.userData.name + '<br>' +
+				'polyline ID:' + intersected.userData.polylineID + '<br>' +
+				'component ID:' + intersected.userData.componentID + '<br>' +
+				'DXF ID:' + intersected.userData.dxfID + '<br>' +
+				'start line:' + intersected.userData.startLine + '<br>' +
+				'Three.js id:' + intersected.id + '<br>' +
+				'UUID:' + intersected.uuid + '<br>' +
+				'Layer: ' + intersected.userData.layer + '<br>' +
+				'Point x: ' + intersects[ 0 ].point.x.toFixed(2) + ' y:' + intersects[ 0 ].point.y.toFixed(2) + ' z:' + intersects[ 0 ].point.z.toFixed(2) + '<br>' +
+				'vertex x:' + pt.x.toFixed(2) + ' y:' + pt.y.toFixed(2) + ' z:' + pt.z.toFixed(2) + '<br>' +
+			'';
+
+			movRotTween( intersected );
+
+		} else {
+
+			intersected = null;
+
+			headsUp.style.display = 'none';
+
+			document.body.style.cursor = 'auto';
+
+		}
+
+	}
+
+	function movRotTween( obj ) {
+
+		var tween = new TWEEN.Tween( obj.position );
+		var oData = obj.userData;
+
+		if ( obj.position.distanceTo( obj.userData.startPosition ) < 1 ) {
+console.log( obj );
+
+//oneToSeveralTable.children[ 0 ].position.z = oneToSeveralTable.children[ 0 ].userData.endPosition.z;
+
+			tween.to( {
+				x: oData.endPosition.x,
+				y: oData.endPosition.y,
+				z: oData.endPosition.z }, 2000 )
+
+			tween.easing( TWEEN.Easing.Elastic.Out).start();
+
+			new TWEEN.Tween( obj.rotation ).to( {
+				x: oData.endRotation.x,
+				y: oData.endRotation.y,
+				z: oData.endRotation.z }, 2000 )
+			.easing( TWEEN.Easing.Elastic.Out).start();
+
+		} else {
+
+			tween.to( {
+				x: oData.startPosition.x,
+				y: oData.startPosition.y,
+				z: oData.startPosition.z }, 2000 )
+
+			tween.easing( TWEEN.Easing.Elastic.Out).start();
+
+			new TWEEN.Tween( obj.rotation ).to( {
+				x: oData.startRotation.x,
+				y: oData.startRotation.y,
+				z: oData.startRotation.z }, 2000 )
+			.easing( TWEEN.Easing.Elastic.Out).start();
+
+		}
+	}
+
+	function assembleQuicklyTween() {
+
+		for ( var i = 0; i < components.length; i++ ) {
+
+			obj = components[ i ];
+
+			var tween = new TWEEN.Tween( obj.position );
+			var oData = obj.userData;
+
+			if ( obj.position.distanceTo( obj.userData.endPosition ) != 0 ) {
+
+				tween.to( {
+					x: oData.endPosition.x,
+					y: oData.endPosition.y,
+					z: oData.endPosition.z }, 2000 )
+
+				tween.easing( TWEEN.Easing.Elastic.Out).start();
+
+				new TWEEN.Tween( obj.rotation ).to( {
+					x: oData.endRotation.x,
+					y: oData.endRotation.y,
+					z: oData.endRotation.z }, 2000 )
+				.easing( TWEEN.Easing.Elastic.Out).start();
+
+			}
+
+		}
+
+	}
+
+	function returnAllToStartTween() {
+
+		for ( var i = 0; i < components.length; i++ ) {
+
+			obj = components[ i ];
+
+			var tween = new TWEEN.Tween( obj.position );
+			var oData = obj.userData;
+
+			if ( obj.position.distanceTo( obj.userData.startPosition ) != 0 ) {
+
+				tween.to( {
+					x: oData.startPosition.x,
+					y: oData.startPosition.y,
+					z: oData.startPosition.z }, 2000 )
+
+				tween.easing( TWEEN.Easing.Elastic.Out).start();
+
+				new TWEEN.Tween( obj.rotation ).to( {
+					x: oData.startRotation.x,
+					y: oData.startRotation.y,
+					z: oData.startRotation.z }, 2000 )
+				.easing( TWEEN.Easing.Elastic.Out).start();
+
+			}
+
+		}
+
+	}
+
+	function requestFile() {
+		fileName = fileNames[ fileCount ];
+
+		xmlHttp = new XMLHttpRequest();
+		xmlHttp.open( 'GET', fileName, true );
+		xmlHttp.onreadystatechange = getDXF;
+		xmlHttp.send( null );
+
+	}
+
+	function getDXF() {
+
+		if ( xmlHttp.readyState !== 4  ) {
+
+			msg1.innerHTML += '.';
+			return;
+
+		}
+
+		readDXF( xmlHttp.responseText );
+
+	}
+
+	function onWindowResize() {
+
+		camera.aspect = window.innerWidth / window.innerHeight;
+		camera.updateProjectionMatrix();
+
+		renderer.setSize( window.innerWidth, window.innerHeight );
+
+	}
+
+	function v2( x, y ){ return new THREE.Vector2( x, y ); }
+	function v( x, y, z ){ return new THREE.Vector3( x, y, z ); }
+
+	function animate() {
+
+		requestAnimationFrame( animate );
+		controls.update();
+		TWEEN.update();
+		stats.update();
+		renderer.render( scene, camera );
+
+	}
+
+</script>
+</body>
+</html>

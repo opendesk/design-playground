@@ -248,7 +248,7 @@
 
 			mesh = new THREE.Mesh( geometry, material );
 			mesh.userData.polylineID = i;
-			mesh.userData.componentID = i
+			mesh.userData.componentID = id;
 			mesh.userData.dxfID = polylines[ i ].id;
 			mesh.userData.layer = polylines[ i ].layer;
 			mesh.userData.startLine = polylines[ i ].startLine;
@@ -266,7 +266,6 @@
 
 		}
 
-		thicknes = 0.75;
 		sideLeft = fiveTo30MinuteChair.children[ 22 ];
 
 		depth = sideLeft.geometry.boundingBox.max.x - sideLeft.geometry.boundingBox.min.x;
