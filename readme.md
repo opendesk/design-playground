@@ -59,13 +59,14 @@ Scripts that read 2D DXF files downloaded from [OpenDesk]( http://opendesk.cc ) 
 
 ### Roadmap
 
+* Toggle display of names or references of each component
 * Add indication of the outline of the whole original plywood sheet
 * Allow for size of cutting tools
 	* including depth
 * Output to SVG, STL, PDF, Three.j JSON  and over formats
 * Create pretty renderings
 * Obtain assembled 3D positions from the original SketchUp files
-* Display animation of the sequence of construction
+* Display animation in order of the sequence of construction
 * Add exploded view
 
 

@@ -252,7 +252,7 @@
 
 			geometry = shape.extrude( { amount: thickness, bevelEnabled: false} );
 			geometry.computeBoundingBox();
-			material = new THREE.MeshNormalMaterial();
+
 			mesh = new THREE.Mesh( geometry, material );
 
 			mesh.userData.polyline = polylines[ i ];
@@ -267,31 +267,13 @@
 
 				mesh.position.set( -2000, -3000, -500 );
 
-				geo = new THREE.BoxGeometry( 1200, 2400, 20 )
-				material = new THREE.MeshNormalMaterial( { opacity: 0.05, transparent: true } );
-				plywood = new THREE.Mesh( geo, material );
-				plywood.position.set( -1200, -260, -500 );
-				scene.add( plywood );
-
 			} else if ( mesh.userData.name === 'Standing Desk DXF 2' ) {
 
 				mesh.position.set( -500, -3000, -500 );
 
-				geo = new THREE.BoxGeometry( 1200, 2400, 20 )
-				material = new THREE.MeshNormalMaterial( { opacity: 0.05, transparent: true } );
-				plywood = new THREE.Mesh( geo, material );
-				plywood.position.set( 320, -260, -500 );
-				scene.add( plywood );
-
 			} else {
 
 				mesh.position.set( 1000, -3000, -500 );
-
-				geo = new THREE.BoxGeometry( 1200, 2400, 20 )
-				material = new THREE.MeshNormalMaterial( { opacity: 0.05, transparent: true } );
-				plywood = new THREE.Mesh( geo, material );
-				plywood.position.set( 1820, -260, -500 );
-				scene.add( plywood );
 
 			}
 
@@ -375,12 +357,25 @@
 		vertex1 = bracketLeftOut.geometry.vertices[ 1 ].clone();
 		vertex2 = bracketLeftOut.geometry.vertices[ 0 ].clone();
 
+//		vect = vertex1.clone().sub( vertex2 )
+//		angle = vect.angleTo( v( vertex1.x - 10, vertex1.y, vertex1.z ) );
+
 		vectorDelta = vertex2.clone().sub( vertex1 );
 		angle2 = Math.atan2( vectorDelta.y, vectorDelta.x );
-//console.log( 'a1', angle2 );
+console.log( 'a1', angle2 );
 
 		bracketLeftOut.userData.endRotation = v( 0, pi/2, pi - angle2 );
 		bracketLeftOut.userData.endPosition = v( 0, -1764, -1420 );
+
+/*
+		bracketLeftOut.applyMatrix( new THREE.Matrix4().makeRotationZ( pi - angle2 ) );
+		bracketLeftOut.applyMatrix( new THREE.Matrix4().makeRotationY( pi/2 ) );
+
+		pt = bracketLeftOut.vertices[ 0 ].clone();
+		bracketLeftOut.applyMatrix( new THREE.Matrix4().makeTranslation( -1000 - pt.x, heightTop + 3000 - pt.y, forwardTop + depth + 500 - pt.z ) );
+*/
+
+
 
 
 		bracketLeftMid = standingDesk.children[ 28 ];
@@ -390,12 +385,24 @@
 		vertex1 = bracketLeftMid.geometry.vertices[ 20 ].clone();
 		vertex2 = bracketLeftMid.geometry.vertices[ 21 ].clone();
 
+		vect = vertex2.clone().sub( vertex1 );
+		angle = vect.angleTo( v( vect.x + 1, vect.y, vect.z ) );
+
 		vectorDelta = vertex2.clone().sub( vertex1 );
 		angle2 = Math.atan2( vectorDelta.y, vectorDelta.x );
-//console.log( 'a2', angle2 );
+console.log( 'a2', angle2 );
+
+/*
+		bracketLeftMid.geometry.applyMatrix( new THREE.Matrix4().makeRotationZ( 1.48 ) ); // 1,48
+		bracketLeftMid.geometry.applyMatrix( new THREE.Matrix4().makeRotationY( pi/2 ) );
+		pt = bracketLeftMid.geometry.vertices[ 20 ]
+		bracketLeftMid.geometry.applyMatrix( new THREE.Matrix4().makeTranslation( thickness - 1000 - pt.x, heightTop + 3000 - pt.y, forwardTop + depth + 500 - pt.z ) );
+*/
 
 		bracketLeftMid.userData.endRotation = v( 0, pi/2, - angle2 );
 		bracketLeftMid.userData.endPosition = v( thickness, -330 , -2330 );
+
+
 
 
 		bracketLeftIn = standingDesk.children[ 30 ];
@@ -404,65 +411,29 @@
 
 		vertex1 = bracketLeftIn.geometry.vertices[ 4 ];
 		vertex2 = bracketLeftIn.geometry.vertices[ 5 ];
+/*
+		vect = vertex2.clone().sub( vertex1 );
+		angle = vect.angleTo( v( vect.x + 10, vect.y, vect.z ) );
+*/
 
 		vectorDelta = vertex2.clone().sub( vertex1 );
 		angle2 = Math.atan2( vectorDelta.y, vectorDelta.x );
-//console.log( 'a3', angle2 );
+console.log( 'a3', angle2 );
 
 		bracketLeftIn.userData.endRotation = v( 0, pi/2, - angle2 );
 		bracketLeftIn.userData.endPosition = v( 2 * thickness, -1200 , -1940 );
 
-
-
-		bracketRightOut = standingDesk.children[ 32 ];
-		bracketRightOut.userData.startRotation = bracketRightOut.rotation.clone();
-		bracketRightOut.userData.startPosition = bracketRightOut.position.clone();
-
-		vertex1 = bracketRightOut.geometry.vertices[ 3 ].clone();
-		vertex2 = bracketRightOut.geometry.vertices[ 4 ].clone();
-
-		vectorDelta = vertex2.clone().sub( vertex1 );
-		angle2 = Math.atan2( vectorDelta.y, vectorDelta.x );
-//console.log( 'a1', angle2 );
-
-		bracketRightOut.userData.endRotation = v( pi, -pi/2, pi - angle2 );
-		bracketRightOut.userData.endPosition = v( width, 1220, 3185 );
-
-
-		bracketRightMid = standingDesk.children[ 34 ];
-		bracketRightMid.userData.startRotation = bracketLeftOut.rotation.clone();
-		bracketRightMid.userData.startPosition = bracketLeftOut.position.clone();
-
-		vertex1 = bracketRightMid.geometry.vertices[ 0 ].clone();
-		vertex2 = bracketRightMid.geometry.vertices[ 1 ].clone();
-
-		vectorDelta = vertex2.clone().sub( vertex1 );
-		angle2 = Math.atan2( vectorDelta.y, vectorDelta.x );
-//console.log( 'a2', angle2 );
-
-		bracketRightMid.userData.endRotation = v( 0, - pi/2, pi + pi/2 - angle2 );
-		bracketRightMid.userData.endPosition = v( - thickness + width, 190, 3130 );
-
-
-
-		bracketRightIn = standingDesk.children[ 36 ];
-		bracketRightIn.userData.startRotation = bracketLeftOut.rotation.clone();
-		bracketRightIn.userData.startPosition = bracketLeftOut.position.clone();
-
-		vertex1 = bracketRightIn.geometry.vertices[ 1 ];
-		vertex2 = bracketRightIn.geometry.vertices[ 2 ];
-
-		vectorDelta = vertex2.clone().sub( vertex1 );
-		angle2 = Math.atan2( vectorDelta.y, vectorDelta.x );
-//console.log( 'a3', angle2 );
-
-		bracketRightIn.userData.endRotation = v( 0, -pi/2, - angle2 );
-		bracketRightIn.userData.endPosition = v( - 2 * thickness + width, 800, 3150 );
+/*
+		bracketLeftIn.applyMatrix( new THREE.Matrix4().makeRotationZ( - angle2 ) ); // 1.2
+		bracketLeftIn.applyMatrix( new THREE.Matrix4().makeRotationY( pi/2 ) );
+		pt = bracketLeftIn.vertices[ 4 ].clone();
+		bracketLeftIn.applyMatrix( new THREE.Matrix4().makeTranslation( 2 * thickness + -1000 - pt.x, heightTop + 3000 - pt.y, -240 + forwardTop + depth + 500 - pt.z ) );
+*/
 
 
 
 		components.push( deskTop, deskRailFrontBack, deskRailFrontMid, deskRailFrontFront, deskRailBackFront, deskRailBackBack, 
-			bracketLeftOut, bracketLeftMid, bracketLeftIn, bracketRightOut, bracketRightMid, bracketRightIn );
+			bracketLeftOut, bracketLeftMid, bracketLeftIn );
 
 	}
 
@@ -471,7 +442,7 @@
 		width = 2400;
 
 		heightTop = 710;
-		forwardTop = 250;
+		forwardTop = 240;
 
 		legsLeftOut = standingDesk.children[ 48 ];
 
