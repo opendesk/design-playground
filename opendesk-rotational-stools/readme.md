@@ -3,7 +3,7 @@
 Opendesk has a global network of makers and a collection of furniture by a range of international designers. Because that furniture is designed for digital fabrication, it can be downloaded as a digital file and made locally — on demand, anywhere in the world.
 ***
 [OpenDesk Design Playground]( http://opendesk.github.io/design-playground/ ) &raquo;  
-OpenDesk Rotational Stool Build R1
+OpenDesk Rotational Stools
 ===
 
 <span style=display:none; >[View as web page]( http://theo-armour.github.io/theo-armour.testing/display-open-desk-rotational-stool/ "View file as a web page." ) </span>  
@@ -27,7 +27,7 @@ A pair of Rotational Stools requires one fourth of a 4’x8’ sheet of plywood.
 
 Opendesk web page
 
-* [AtFAB Rotational Stool]( https://www.opendesk.cc/atfab/rotational-stools )
+* [AtFAB Rotational Stools]( https://www.opendesk.cc/atfab/rotational-stools )
 
 Designers
 

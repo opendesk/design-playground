@@ -87,7 +87,9 @@ Scripts that attempt to recreate the OpenDesk projects by creating 3D models on-
 ### [Rotational Stools Demo]( http://opendesk.github.io/design-playground/opendesk-rotational-stools/latest/ )
 [Read Me]( http://opendesk.github.io/design-playground/opendesk-rotational-stools/ )
 
-* view fully parameterized with assemble disassemble, simple geometry  
+* View fully parameterized with assemble and disassemble, simple geometry
+* Exploded view - has issues  
+* [Original design]( https://www.opendesk.cc/atfab/rotational-stools ) by [AtFAB]( http://atfab.co/ )
 
 ### Roadmap
 
