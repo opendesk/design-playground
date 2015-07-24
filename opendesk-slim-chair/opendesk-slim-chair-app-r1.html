@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang=en >
+<head>
+<title>opendesk-slim-chair-app R1</title>
+<meta charset=utf-8 />
+<meta name=viewport content='width=device-width,user-scalable=no,minimum-scale=1.0,maximum-scale=1.0' />
+</head>
+<body>
+<script src=http://mrdoob.github.io/three.js/build/three.min.js ></script>
+<script src=http://mrdoob.github.io/three.js/examples/js/controls/OrbitControls.js ></script>
+<script src=http://mrdoob.github.io/three.js/examples/js/libs/stats.min.js ></script>
+<script>
+
+	var thickness = 20;
+	var scale = 1;
+
+	var pi = Math.PI, pi05 = pi * 0.5, pi2 = pi + pi;
+	var d2r = pi / 180, r2d = 180 / pi;  // degrees / radians
+
+	var css, menu, stats, renderer, scene, camera, controls;
+	var geometry, material, mesh;
+
+	init();
+	animate();
+
+	function init() {
+
+		css = document.head.appendChild( document.createElement( 'style' ) );
+		css.innerHTML ='body { font: 600 12pt monospace; margin: 0; overflow: hidden; }' +
+
+			'#i {text-decoration: none; }' +
+		'';
+
+		menu = document.body.appendChild( document.createElement( 'div' ) );
+		menu.style.cssText = 'margin: 0 20px; position: absolute; ';
+		menu.innerHTML = '<h2 style=margin:0; ><a href="" >' + document.title + '</a> ' +
+			'<a id=i href=http://opendesk.github.io/design-playground/ >&#x24D8;</a></h2>' +
+			'<p>first steps in building an app for the Slim Chair by Jose Pacheco</p>' +
+			'<p><a href="opendesk-slim-chair-lorenz-attractor-r1.html" >Bring the Action</a></p>' +
+			'<div id=info ></div>' +
+		'';
+
+		stats = new Stats();
+		stats.domElement.style.cssText = 'position: absolute; right: 0; top: 0; z-index: 100; ';
+		document.body.appendChild( stats.domElement );
+
+		renderer = new THREE.WebGLRenderer( { alpha: 1, antialias: true, clearColor: 0xffffff }  );
+		renderer.setSize( window.innerWidth, window.innerHeight );
+		document.body.appendChild( renderer.domElement );
+
+		camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 5000 );
+		camera.position.set( 1000, 1000, 1000 );
+
+		controls = new THREE.OrbitControls( camera, renderer.domElement );
+		controls.maxDistance = 5000;
+
+		scene = new THREE.Scene();
+
+		window.addEventListener( 'resize', onWindowResize, false );
+
+// assets
+		geometry = new THREE.BoxGeometry( 1000, 20, 1000 );
+		material = new THREE.MeshNormalMaterial( { opacity: 0.5, transparent: true } );
+		mesh = new THREE.Mesh( geometry, material );
+		mesh.position.set( 250, -20, 250 );
+		scene.add( mesh );
+
+		mesh = new THREE.GridHelper( 500, 50 );
+		mesh.position.set( 250, -9, 250 );
+		scene.add( mesh );
+
+		var axisHelper = new THREE.AxisHelper( 500 );
+		scene.add( axisHelper );
+
+		var slimChair = new THREE.Object3D()
+
+		setat = drawSeat();
+		seat.position.set( thickness, height, 75 );
+		slimChair.add( seat );
+
+
+		frontLegs = drawLeg();
+		frontLegs.rotation.y = pi;
+		frontLegs.position.set( 410, 0, 500 );
+		slimChair.add( frontLegs );
+
+		backLegs = drawLeg();
+		backLegs.position.set( 0, 0, 0 );
+		slimChair.add( backLegs );
+
+		back = drawBack();
+		back.position.set( 0, origin - thickness, 105 );
+		slimChair.add( back );
+
+		supportLeft = drawSupport();
+		slimChair.add( supportLeft );
+
+		supportRight = drawSupport();
+		supportRight.position.x = 300;
+		slimChair.add( supportRight );
+
+		bracketLeft = drawBracket();
+		bracketLeft.position.set( 0, 450, 100 );
+		slimChair.add( bracketLeft );
+
+		bracketRight = drawBracket();
+		bracketRight.position.set( 410 - thickness, 450, 100 );
+		slimChair.add( bracketRight );
+
+		scene.add( slimChair );
+
+	}
+
+
+	function drawSeat() {
+
+		cutout = 50;
+		radius = 30;
+		width = 410 - 2 * thickness;
+		depth = 380;
+		height = 450;
+
+		var material = new THREE.MeshNormalMaterial( { opacity: 0.85, transparent: true } );
+
+		var shape = new THREE.Shape();
+
+		shape.moveTo( 0, cutout );
+		shape.lineTo( thickness, cutout );
+		shape.absarc( 50, 30, radius, 180 * d2r, 270 * d2r, true );
+		shape.absarc( width - thickness - radius, radius, radius, 270 * d2r, 360 * d2r, true);
+		shape.lineTo( width - thickness, cutout );
+		shape.lineTo( width, cutout );
+		shape.absarc( width - radius, depth - radius, radius, 0 * d2r, 90 * d2r, true );
+		shape.absarc( radius, depth - radius, radius, 90 * d2r, 180 * d2r, true );
+
+		var geometry = shape.extrude( { amount: thickness, bevelEnabled: false} );
+		geometry.applyMatrix( new THREE.Matrix4().makeRotationX( pi05 ) );
+
+		seat = new THREE.Mesh( geometry, material );
+
+		return seat;
+
+	}
+
+	function drawLeg() {
+
+		cutout = 150;
+		radius = 50;
+
+		width = 410;
+		depth = 380;
+		height = 450;
+
+		rail = 0.5 * ( 410 - 334 ); 
+		gap = 363;
+
+		var material = new THREE.MeshNormalMaterial( { opacity: 0.85, transparent: true } );
+
+		var shape = new THREE.Shape();
+
+		shape.moveTo( 0, 0 );
+		shape.lineTo( 0, height - cutout );
+		shape.lineTo( thickness, height - cutout );
+		shape.lineTo( thickness, height );
+		shape.lineTo( width - thickness, height );
+		shape.lineTo( width - thickness, height - cutout );
+		shape.lineTo( width, height - cutout );
+		shape.lineTo( width, 0 );
+		shape.lineTo( width - rail, 0 );
+		shape.lineTo( width - rail - 50, gap );
+		shape.lineTo( rail + 50, gap );
+		shape.lineTo( rail, 0 );
+
+		var geometry = shape.extrude( { amount: thickness, bevelEnabled: false} );
+		geometry.applyMatrix( new THREE.Matrix4().makeRotationX( 13 * d2r ) );
+
+		var mesh = new THREE.Mesh( geometry, material );
+
+		return mesh;
+
+	}
+
+	function drawBack() {
+
+		radiusOut = 35;
+		radiusIn = 20;
+		cutout = 150
+
+		width = 410;
+		height = 400; //
+		origin = 450
+
+		rail = 0.5 * ( 410 - 334 ); 
+		gapTop = 90;
+		gapBot = height - 2 * rail - 90 
+
+		var material = new THREE.MeshNormalMaterial( { opacity: 0.85, transparent: true } );
+
+		var shape = new THREE.Shape();
+
+		shape.moveTo( thickness, 0 );
+		shape.lineTo( thickness, cutout );
+		shape.lineTo( 0, cutout );
+		shape.absarc( radiusOut, height - radiusOut, radiusOut, 180 * d2r, 90 * d2r, true );
+		shape.absarc( width - radiusOut, height - radiusOut, radiusOut, 90 * d2r, 0 * d2r, true );
+		shape.lineTo( width, cutout );
+		shape.lineTo( width - thickness, cutout );
+		shape.lineTo( width - thickness, 0 );
+		shape.lineTo( width - rail, 0 );
+		shape.absarc( width - rail - radiusIn, gapBot - radiusIn, radiusIn, 0 * d2r, 90 * d2r, true );
+		shape.absarc( rail + radiusIn, gapBot - radiusIn, radiusIn, 90 * d2r, 180 * d2r, true );
+		shape.lineTo( rail, 0 );
+
+		var holePath = new THREE.Path();
+		holePath.moveTo( rail + radiusIn, height - rail  );
+		holePath.absarc( rail + radiusIn, height - rail - radiusIn, radiusIn, 90 * d2r, 180 * d2r, true );
+		holePath.absarc( rail + radiusIn, height - rail - gapTop + radiusIn, radiusIn, 180 * d2r, 270 * d2r, true );
+		holePath.absarc( width - rail - radiusIn, height - rail - gapTop + radiusIn, radiusIn, 270 * d2r, 360 * d2r, true );
+		holePath.absarc( width - rail - radiusIn, height - rail - radiusIn, radiusIn, 0 * d2r, 90 * d2r, true );
+		shape.holes.push( holePath );
+
+		var geometry = shape.extrude( { amount: thickness, bevelEnabled: false} );
+		geometry.applyMatrix( new THREE.Matrix4().makeRotationX( -16 * d2r ) );
+
+		var mesh = new THREE.Mesh( geometry, material );
+
+		return mesh;
+	}
+
+
+	function drawSupport() {
+
+		radiusFrontOut = 20
+		radiusFrontIn = 100;
+
+		cutout = 80;
+
+		width = 410;
+		depth = 250;
+		height = 450;
+
+		angleLegsBack = 283 * d2r;
+
+		var material = new THREE.MeshNormalMaterial( { opacity: 0.95, transparent: true } );
+
+		var shape = new THREE.Shape();
+
+		shape.moveTo( 0, 0 );
+		shape.lineTo( depth, 0 );
+		shape.lineTo( depth + cutout * cos( angleLegsBack ), cutout * sin( angleLegsBack ) );
+		shape.lineTo( depth + cutout * cos( angleLegsBack ) - 30, cutout * sin( angleLegsBack ) );
+		shape.lineTo( depth + cutout * cos( angleLegsBack ) - 50, cutout * sin( angleLegsBack ) + 50 );
+
+		shape.lineTo( cutout * - cos( angleLegsBack ) + 50, cutout * sin( angleLegsBack ) + 50 );
+		shape.lineTo( cutout * - cos( angleLegsBack ) + 30, cutout * sin( angleLegsBack ) );
+		shape.lineTo( cutout * - cos( angleLegsBack ), cutout * sin( angleLegsBack ) );
+
+		var geometry = shape.extrude( { amount: thickness, bevelEnabled: false} );
+		geometry.applyMatrix( new THREE.Matrix4().makeRotationY( -pi05 ) );
+
+		var mesh = new THREE.Mesh( geometry, material );
+		mesh.position.set( 100, height - thickness, 125 )
+
+		return mesh;
+
+	}
+
+
+	function drawBracket() {
+
+		radiusFrontOut = 20
+		radiusFrontIn = 100;
+
+		cutout = 150;
+
+		width = 410;
+		depth = -300;
+		height = 450;
+
+		angleBack = 257 * d2r;
+		angleFront = 283 * d2r;
+		angleUpper = 74 * d2r;
+
+		var material = new THREE.MeshNormalMaterial( { opacity: 0.95, transparent: true } );
+
+		var shape = new THREE.Shape();
+
+		shape.moveTo( depth, 0 );
+//		shape.lineTo( depth, 0 );
+		shape.lineTo( depth + cutout * cos( angleBack ), cutout * sin( angleBack ) );
+//		shape.lineTo( cutout * cos( angleBack ) + 50, cutout * sin( angleBack ) );
+		shape.lineTo( depth + cutout * cos( angleBack ) + thickness * cos( angleBack + pi05 ), cutout * sin( angleBack ) + thickness * sin( angleBack + pi05) );
+		shape.lineTo( depth + cutout * cos( angleBack ) + thickness * cos( angleBack + pi05 ) + ( cutout -50  )* cos( angleBack + pi), 
+			cutout * sin( angleBack ) + thickness * sin( angleBack + pi05) + ( cutout -50  )* sin( angleBack + pi));
+
+
+		shape.lineTo( cutout * cos( angleFront ) + thickness * cos( angleFront - pi05 ) + ( cutout -50  )* cos( angleFront + pi), 
+			cutout * sin( angleFront ) + thickness * sin( angleFront - pi05) + ( cutout -50  )* sin( angleFront + pi));
+		shape.lineTo( cutout * cos( angleFront ) + thickness * cos( angleFront - pi05 ), 
+			cutout * sin( angleFront ) + thickness * sin( angleFront - pi05) );
+
+		shape.lineTo( cutout * cos( angleFront ), 
+			cutout * sin( angleFront ) );
+
+		shape.lineTo( 0, 0 );
+		shape.lineTo( cutout * cos( angleUpper ), cutout * sin( angleUpper ) );
+
+		shape.lineTo( cutout * cos( angleUpper ) + thickness * cos( angleUpper + pi05 ) , 
+			cutout * sin( angleUpper ) + thickness * sin( angleUpper + pi05) );
+
+		shape.lineTo( cutout * cos( angleUpper ) + thickness * cos( angleUpper + pi05 ) + cutout * cos( angleUpper + pi ), 
+			cutout * sin( angleUpper ) + thickness * sin( angleUpper + pi05) + cutout * sin( angleUpper + pi ) );
+
+		var geometry = shape.extrude( { amount: thickness, bevelEnabled: false} );
+		geometry.applyMatrix( new THREE.Matrix4().makeRotationY( pi05 ) );
+
+		var mesh = new THREE.Mesh( geometry, material );
+//		mesh.position.set( 100, 200, 125 )
+
+		return mesh;
+
+	}
+
+
+	function cos(a){return Math.cos(a);}
+	function sin(a){return Math.sin(a);}
+
+
+	function onWindowResize() {
+
+		camera.aspect = window.innerWidth / window.innerHeight;
+		camera.updateProjectionMatrix();
+
+		renderer.setSize( window.innerWidth, window.innerHeight );
+
+	}
+
+	function animate() {
+
+		requestAnimationFrame( animate );
+		controls.update();
+		stats.update();
+		renderer.render( scene, camera );
+
+	}
+
+</script>
+</body>
+</html>

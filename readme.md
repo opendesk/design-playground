@@ -26,6 +26,13 @@ OpenDesk Design Playground
 ## DXF Projects
 Scripts that read 2D DXF files downloaded from [OpenDesk]( http://opendesk.cc ) and transform the data into 3D models viewable in your browser.
 
+### [OpenDesk Slim Chair DXF]( http://opendesk.github.io/design-playground/opendesk-slim-chair/opendesk-slim-chair-app-r1.html )
+
+* First post 2015-07-24
+* First pass at creating the Slim Chair as an app
+* Many issues still to be resolved
+	* Especially fillets and positions
+
 ### [OpenDesk Slim Chair DXF]( http://opendesk.github.io/design-playground/opendesk-slim-chair/latest/ )
 
 * First post 2015-07-21
