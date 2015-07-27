@@ -23,21 +23,53 @@ OpenDesk Design Playground
 * To help create new ways of visualizing, collaborating and improving OpenDesk projects 
 * To leave behind the notion that you need 2D plans on paper in order to build things
 
+## App Projects
+Scripts that attempt to recreate the OpenDesk projects by creating 3D models on-the-fly using code with user-entered parameters.
+
+### [OpenDesk Slim Chair App]( http://opendesk.github.io/design-playground/opendesk-slim-chair/latest/ )
+
+* First post 2015-07-24, latest update 2015-07-26
+* First pass at creating the Slim Chair as an app
+* Four slider bars control width, depth, seat height and material thickness
+* Many minor issues still to be resolved
+	* Particularly with the bracket
+	* Add adjust height of back slider
+	* Needs a code cleanup
+* Future releases to include 
+	* Add lights and select material
+	* Add render scenes
+	* Version with two arms instead of one back?
+
+
+### [Half Sheet Table Demo]( http://opendesk.github.io/design-playground/opendesk-half-sheet-table/latest/ ) 
+[Read Me]( http://opendesk.github.io/design-playground/opendesk-half-sheet-table/ )
+
+* View highly parameterized complex geometry 
+
+### [Rotational Stools Demo]( http://opendesk.github.io/design-playground/opendesk-rotational-stools/latest/ )
+[Read Me]( http://opendesk.github.io/design-playground/opendesk-rotational-stools/ )
+
+* View fully parameterized with assemble and disassemble, simple geometry
+* Exploded view - has issues  
+* [Original design]( https://www.opendesk.cc/atfab/rotational-stools ) by [AtFAB]( http://atfab.co/ )
+
+### Roadmap
+
+* Output to SVG, STL, PDF, Three.j JSON  and over formats
+* Create pretty renderings
+
+
+
+
 ## DXF Projects
 Scripts that read 2D DXF files downloaded from [OpenDesk]( http://opendesk.cc ) and transform the data into 3D models viewable in your browser.
 
-### [OpenDesk Slim Chair App]( http://opendesk.github.io/design-playground/opendesk-slim-chair/opendesk-slim-chair-app-r1.html )
 
-* First post 2015-07-24
-* First pass at creating the Slim Chair as an app
-* Many issues still to be resolved
-	* Especially fillets and positions
-
-### [OpenDesk Slim Chair DXF]( http://opendesk.github.io/design-playground/opendesk-slim-chair/latest/ )
+### [OpenDesk Slim Chair DXF]( http://opendesk.github.io/design-playground/opendesk-slim-chair/opendesk-slim-chair-dxf-r1.html )
 
 * First post 2015-07-21
 * Assembled components positioned by algorithm ~ except that angles are not yet computed
-* Add 'Assemble slowly' nutton
+* Add 'Assemble slowly' button
 * [Slim Chair]( https://www.opendesk.cc/regaliz/slim-chair ) is designed by [Jose Pacheco]( https://www.opendesk.cc/designers/jose-pacheco )
 
 ### [OpenDesk Standing Table DXF]( http://opendesk.github.io/design-playground/opendesk-standing-table/latest/ )
@@ -88,25 +120,6 @@ Scripts that read 2D DXF files downloaded from [OpenDesk]( http://opendesk.cc ) 
 * Add exploded view
 
 
-## App Projects
-Scripts that attempt to recreate the OpenDesk projects by creating 3D models on-the-fly using code with user-entered parameters.
-
-### [Half Sheet Table Demo]( http://opendesk.github.io/design-playground/opendesk-half-sheet-table/latest/ ) 
-[Read Me]( http://opendesk.github.io/design-playground/opendesk-half-sheet-table/ )
-
-* View highly parameterized complex geometry 
-
-### [Rotational Stools Demo]( http://opendesk.github.io/design-playground/opendesk-rotational-stools/latest/ )
-[Read Me]( http://opendesk.github.io/design-playground/opendesk-rotational-stools/ )
-
-* View fully parameterized with assemble and disassemble, simple geometry
-* Exploded view - has issues  
-* [Original design]( https://www.opendesk.cc/atfab/rotational-stools ) by [AtFAB]( http://atfab.co/ )
-
-### Roadmap
-
-* Output to SVG, STL, PDF, Three.j JSON  and over formats
-* Create pretty renderings
 
 
 ## Features
