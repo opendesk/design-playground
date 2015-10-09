@@ -39,6 +39,7 @@ Scripts that attempt to recreate the OpenDesk projects by creating 3D models on-
 	* Add lights and select material
 	* Add render scenes
 	* Version with two arms instead of one back?
+* [Silly Rendering: Slim Chair as a Lorenz Attractor]( http://opendesk.github.io/design-playground/opendesk-slim-chair/opendesk-slim-chair-lorenz-attractor-r1.html )
 
 
 ### [Half Sheet Table Demo]( http://opendesk.github.io/design-playground/opendesk-half-sheet-table/latest/ ) 
