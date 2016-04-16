@@ -44,6 +44,8 @@
 
 	var raycaster;
 	var mouse;
+	var particleMaterial;
+
 	var pi = Math.PI;
 
 	var info, stats, renderer, scene, camera, controls;
@@ -497,7 +499,8 @@
 					y: oData.endPosition.y,
 					z: oData.endPosition.z }, 2000 )
 
-				tween.easing( TWEEN.Easing.Elastic.Out).start();
+				tween.easing( TWEEN.Easing.Elastic.Out)
+				.start();
 
 				new TWEEN.Tween( component.rotation ).to( {
 					x: oData.endRotation.x,

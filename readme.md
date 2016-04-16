@@ -138,7 +138,14 @@ By communicating directly with the GPU in your computer, WebGL apps are very fas
 
 It is hope that in the future apps based on other technologies such as [OnShape]( https://www.onshape.com/ ) or [Grasshopper on Rhino]( http://www.grasshopper3d.com/ ) and others are added to this collection of tools.
  
- 
+## Links of Interest
+
+* http://www.flexiblestream.org/
+* http://www.flexiblestream.org/project/50-digital-wood-joints
+* http://www.lucidmachineart.com/
+& http://openstructures.net/
+
+
 ## Contacts
 
 opendesk-community@googlegroups.com
@@ -149,7 +156,7 @@ See also [AtFAB]( http://atfab.co )
 
 ##Copyright
 
-Copyright © 2015 OpenDesk authors
+Copyright © 2016 OpenDesk authors
 
 
 ## License
