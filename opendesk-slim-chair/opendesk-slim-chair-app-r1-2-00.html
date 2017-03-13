@@ -56,7 +56,7 @@
 		stats.domElement.style.cssText = 'position: absolute; right: 0; top: 0; z-index: 100; ';
 		document.body.appendChild( stats.domElement );
 
-		renderer = new THREE.WebGLRenderer( { alpha: 1, antialias: false, clearColor: 0xffffff }  );
+		renderer = new THREE.WebGLRenderer( { alpha: 1, antialias: true, clearColor: 0xffffff }  );
 		renderer.setSize( window.innerWidth, window.innerHeight );
 		document.body.appendChild( renderer.domElement );
 
@@ -73,7 +73,7 @@
 
 // ground
 		geometry = new THREE.BoxGeometry( 1000, 20, 1000 );
-		material = new THREE.MeshNormalMaterial( { opacity: 0.5, transparent: false } );
+		material = new THREE.MeshNormalMaterial( { opacity: 0.5, transparent: true } );
 		mesh = new THREE.Mesh( geometry, material );
 		mesh.position.set( 250, -20, 250 );
 		scene.add( mesh );
@@ -102,7 +102,7 @@
 
 		slimChair = new THREE.Object3D()
 
-		material = new THREE.MeshNormalMaterial( { opacity: 0.95, transparent: false } );
+		material = new THREE.MeshNormalMaterial( { opacity: 0.95, transparent: true } );
 
 		seat = drawSeat();
 		seat.position.set( thickness, heightSeat, 75 );
@@ -144,7 +144,6 @@
 
 	function drawBracket() {
 
-		var shape, geometry, mesh;
 		var b = {};
 
 		notchBracket = 180;
@@ -160,7 +159,7 @@
 		radiusBracketTop = 40;
 		radiusBracketBack = 150;
 
-		shape = new THREE.Shape();
+		var shape = new THREE.Shape();
 
 //		shape.moveTo( 0, 0 );
 
@@ -208,11 +207,11 @@
 //		shape.lineTo( depthBracket, 0 );
 		centerX = depthBracket - radiusBracketFront;
 		centerY = - radiusBracketFront;
-		shape.absarc( centerX, centerY, radiusBracketFront, 16 * d2r, pi05, false );
+		shape.absarc( centerX, centerY, radiusBracketFront, 16 * d2r, pi05, true );
 
 /*
-		shape.lineTo( - notchBracket * cos( angleUpper ) - thickness * cos( angleUpper + pi05 ) - notchBracket * cos( angleUpper + pi ),
-			notchBracket * sin( angleUpper ) + thickness * sin( angleUpper + pi05) + notchBracket * sin( angleUpper + pi )
+		shape.lineTo( - notchBracket * cos( angleUpper ) - thickness * cos( angleUpper + pi05 ) - notchBracket * cos( angleUpper + pi ), 
+			notchBracket * sin( angleUpper ) + thickness * sin( angleUpper + pi05) + notchBracket * sin( angleUpper + pi ) 
 				- thickness * cos( angleUpper )
 			);
 */
@@ -226,16 +225,14 @@
 
 		shape.lineTo( thickness - notchBracket * cos( angleUpper ), notchBracket * sin( angleUpper ) );
 
-		shape.lineTo( thickness - notchBracket * cos( angleUpper ) - thickness * cos( angleUpper - pi05 ) ,
+		shape.lineTo( thickness - notchBracket * cos( angleUpper ) - thickness * cos( angleUpper - pi05 ) , 
 			notchBracket * sin( angleUpper ) + thickness * sin( angleUpper - pi05) );
 
-//		var geometry = shape.extrude( { amount: thickness, bevelEnabled: false} );
-		geometry = new THREE.ExtrudeGeometry( shape, { amount: thickness, bevelEnabled: false } );
-
+		var geometry = shape.extrude( { amount: thickness, bevelEnabled: false} );
 		geometry.applyMatrix( new THREE.Matrix4().makeRotationY( -pi05 ) );
 
-		mesh = new THREE.Mesh( geometry, material );
-//		mesh.position.set( 100, 200, 125 );
+		var mesh = new THREE.Mesh( geometry, material );
+//		mesh.position.set( 100, 200, 125 )
 
 		return mesh;
 
@@ -243,16 +240,14 @@
 
 	function drawLeg() {
 
-		var shape, geometry, mesh;
-
 		notchLeg = 150;
 		radiusLeg = 50;
 
-		widthFoot = 0.5 * ( 410 - 334 );
+		widthFoot = 0.5 * ( 410 - 334 ); 
 		angleFoot = 4;
 
 		gap = 70; // 363;
-		deltaXLeg = gap * cos( ( 90 - angleFoot ) * d2r )
+		deltaXLeg = gap * cos( ( 90 - angleFoot ) * d2r ) 
 
 		var shape = new THREE.Shape();
 
@@ -269,30 +264,27 @@
 
 		centerX = widthChair - widthFoot - deltaXLeg - radiusLeg - thickness;
 		centerY = heightSeat - gap * sin( ( 90 - angleFoot ) * d2r ) - radiusLeg;
-		shape.absarc( centerX, centerY, radiusLeg, angleFoot * d2r, 90 * d2r, false );
+		shape.absarc( centerX, centerY, radiusLeg, angleFoot * d2r, 90 * d2r, true );
 //		shape.lineTo( widthChair - widthFoot - 50, gap );
 
 		centerX = widthFoot + deltaXLeg + radiusLeg + thickness;
 		centerY = heightSeat - gap * sin( ( 90 - angleFoot ) * d2r ) - radiusLeg;
-		shape.absarc( centerX, centerY, radiusLeg, 90 * d2r, ( 180 - angleFoot ) * d2r, false );
+		shape.absarc( centerX, centerY, radiusLeg, 90 * d2r, ( 180 - angleFoot ) * d2r, true );
 //		shape.lineTo( widthFoot + 50, gap );
 
 		shape.lineTo( widthFoot + thickness, 0 );
 
-//		var geometry = shape.extrude( { amount: thickness, bevelEnabled: false} );
-		geometry = new THREE.ExtrudeGeometry( shape, { amount: thickness, bevelEnabled: false } );
+		var geometry = shape.extrude( { amount: thickness, bevelEnabled: false} );
 		geometry.applyMatrix( new THREE.Matrix4().makeTranslation( 0, - heightSeat, 0 ) );
 		geometry.applyMatrix( new THREE.Matrix4().makeRotationX( 13 * d2r ) );
 
-		mesh = new THREE.Mesh( geometry, material );
+		var mesh = new THREE.Mesh( geometry, material );
 
 		return mesh;
 
 	}
 
 	function drawSupport() {
-
-		var shape, geometry, mesh;
 
 		radiusSupportOut = 20
 		radiusSupportIn = 20;
@@ -311,40 +303,37 @@
 //		shape.moveTo( 0, 0 );
 		shape.moveTo( depthSupport, 0 );
 		shape.lineTo( depthSupport + heightSupport * cos( angleLegs ), heightSupport * sin( angleLegs ) );
-
+ 
 		centerX = depthSupport + heightSupport * cos( angleLegs ) - tabDepthSupport + radiusSupportOut;
 		centerY = heightSupport * sin( angleLegs ) + radiusSupportOut;
-		shape.absarc( centerX, centerY, radiusSupportOut, 270 * d2r, angleLegs - pi05, false );
+		shape.absarc( centerX, centerY, radiusSupportOut, 270 * d2r, angleLegs - pi05, true );
 //		shape.lineTo( depthSupport + heightSupport * cos( angleLegs ) - tabDepthSupport, heightSupport * sin( angleLegs ) );
 
 
 		centerX = depthSupport + heightSupport * cos( angleLegs ) - tabDepthSupport - deltaX - radiusSupportIn;
 		centerY = heightSupport * sin( angleLegs ) + deltaY - radiusSupportIn;
-		shape.absarc( centerX, centerY, radiusSupportIn, angleLegs + pi05, 450 * d2r, false );
+		shape.absarc( centerX, centerY, radiusSupportIn, angleLegs + pi05, 450 * d2r, true );
 //		shape.lineTo( depthSupport + heightSupport * cos( angleLegs ) - tabDepthSupport - deltaX, heightSupport * sin( angleLegs ) + 50 );
 
 		centerX = heightSupport * - cos( angleLegs ) + tabDepthSupport + deltaX + radiusSupportIn;
 		centerY = heightSupport * sin( angleLegs ) + deltaY - radiusSupportIn;
-		shape.absarc( centerX, centerY, radiusSupportIn, 90 * d2r, ( 180 - 13 ) * d2r, false );
+		shape.absarc( centerX, centerY, radiusSupportIn, 90 * d2r, ( 180 - 13 ) * d2r, true );
 //		shape.lineTo( heightSupport * - cos( angleLegs ) + tabDepthSupport + deltaX, heightSupport * sin( angleLegs ) + 50 );
 
 
 		centerX = heightSupport * - cos( angleLegs ) + tabDepthSupport - radiusSupportOut;
 		centerY = heightSupport * sin( angleLegs ) + radiusSupportOut;
-//		shape.absarc( centerX, centerY, radiusSupportOut, ( 360 - 13 ) * d2r, ( 270 ) * d2r, false );
-		shape.absarc( centerX, centerY, radiusSupportOut, ( 360 - 13 ) * d2r, ( 270 ) * d2r, false );
-
+		shape.absarc( centerX, centerY, radiusSupportOut, ( 360 - 13 ) * d2r, ( 270 ) * d2r, true );
 //		shape.lineTo( depthSupport + heightSupport * cos( angleLegs ) - tabDepthSupport, heightSupport * sin( angleLegs ) );
 
 //		shape.lineTo( heightSupport * - cos( angleLegs ) + tabDepthSupport, heightSupport * sin( angleLegs ) );
 		shape.lineTo( heightSupport * - cos( angleLegs ), heightSupport * sin( angleLegs ) );
 		shape.lineTo( 0, 0 );
 
-//		var geometry = shape.extrude( { amount: thickness, bevelEnabled: false} );
-		geometry = new THREE.ExtrudeGeometry( shape, { amount: thickness, bevelEnabled: false } );
+		var geometry = shape.extrude( { amount: thickness, bevelEnabled: false} );
 		geometry.applyMatrix( new THREE.Matrix4().makeRotationY( -pi05 ) );
 
-		mesh = new THREE.Mesh( geometry, material );
+		var mesh = new THREE.Mesh( geometry, material );
 
 		return mesh;
 
@@ -352,8 +341,6 @@
 
 
 	function drawSeat() {
-
-		var shape, geometry, mesh;
 
 		notchSeat = 50;
 		radiusSeat = 30;
@@ -363,15 +350,14 @@
 
 		shape.moveTo( 0, notchSeat );
 		shape.lineTo( thickness, notchSeat );
-		shape.absarc( thickness + radiusSeat, notchSeat - radiusSeat, radiusSeat, 180 * d2r, 270 * d2r, false );
-		shape.absarc( widthSeat - thickness - radiusSeat, radiusSeat, radiusSeat, 270 * d2r, 360 * d2r, false );
+		shape.absarc( thickness + radiusSeat, notchSeat - radiusSeat, radiusSeat, 180 * d2r, 270 * d2r, true );
+		shape.absarc( widthSeat - thickness - radiusSeat, radiusSeat, radiusSeat, 270 * d2r, 360 * d2r, true);
 		shape.lineTo( widthSeat - thickness, notchSeat );
 		shape.lineTo( widthSeat, notchSeat );
-		shape.absarc( widthSeat - radiusSeat, depthSeat - radiusSeat, radiusSeat, 0 * d2r, 90 * d2r, false );
-		shape.absarc( radiusSeat, depthSeat - radiusSeat, radiusSeat, 90 * d2r, 180 * d2r, false );
+		shape.absarc( widthSeat - radiusSeat, depthSeat - radiusSeat, radiusSeat, 0 * d2r, 90 * d2r, true );
+		shape.absarc( radiusSeat, depthSeat - radiusSeat, radiusSeat, 90 * d2r, 180 * d2r, true );
 
-//		var geometry = shape.extrude( { amount: thickness, bevelEnabled: false} );
-		geometry = new THREE.ExtrudeGeometry( shape, { amount: thickness, bevelEnabled: false } );
+		var geometry = shape.extrude( { amount: thickness, bevelEnabled: false} );
 		geometry.applyMatrix( new THREE.Matrix4().makeRotationX( pi05 ) );
 
 		seat = new THREE.Mesh( geometry, material );
@@ -382,17 +368,15 @@
 
 	function drawBack() {
 
-		var shape, geometry, mesh;
-
 		var radiusOut = 35;
 		var radiusIn = 20;
 		var notchBack = 150
 
 		heightBack = 400; //
 
-		rail = 0.5 * ( 410 - 334 );
+		rail = 0.5 * ( 410 - 334 ); 
 		gapTop = 90;
-		gapBot = heightBack - 2 * rail - 90
+		gapBot = heightBack - 2 * rail - 90 
 
 		var shape = new THREE.Shape();
 
@@ -406,20 +390,19 @@
 		shape.lineTo( widthChair - thickness, notchBack );
 		shape.lineTo( widthChair - thickness, 0 );
 		shape.lineTo( widthChair - rail - thickness, 0 );
-		shape.absarc( widthChair - rail - thickness - radiusIn, gapBot - radiusIn, radiusIn, 0 * d2r, 90 * d2r, false );
-		shape.absarc( rail + thickness + radiusIn, gapBot - radiusIn, radiusIn, 90 * d2r, 180 * d2r, false );
+		shape.absarc( widthChair - rail - thickness - radiusIn, gapBot - radiusIn, radiusIn, 0 * d2r, 90 * d2r, true );
+		shape.absarc( rail + thickness + radiusIn, gapBot - radiusIn, radiusIn, 90 * d2r, 180 * d2r, true );
 		shape.lineTo( rail + thickness, 0 );
 
 		var holePath = new THREE.Path();
 		holePath.moveTo( rail + radiusIn, heightBack - rail  );
-		holePath.absarc( rail + radiusIn + thickness, heightBack - rail - radiusIn, radiusIn, 90 * d2r, 180 * d2r, false );
-		holePath.absarc( rail + radiusIn + thickness, heightBack - rail - gapTop + radiusIn, radiusIn, 180 * d2r, 270 * d2r, false );
-		holePath.absarc( widthChair - rail - radiusIn - thickness, heightBack - rail - gapTop + radiusIn, radiusIn, 270 * d2r, 360 * d2r, false );
-		holePath.absarc( widthChair - rail - radiusIn - thickness, heightBack - rail - radiusIn, radiusIn, 0 * d2r, 90 * d2r, false );
+		holePath.absarc( rail + radiusIn + thickness, heightBack - rail - radiusIn, radiusIn, 90 * d2r, 180 * d2r, true );
+		holePath.absarc( rail + radiusIn + thickness, heightBack - rail - gapTop + radiusIn, radiusIn, 180 * d2r, 270 * d2r, true );
+		holePath.absarc( widthChair - rail - radiusIn - thickness, heightBack - rail - gapTop + radiusIn, radiusIn, 270 * d2r, 360 * d2r, true );
+		holePath.absarc( widthChair - rail - radiusIn - thickness, heightBack - rail - radiusIn, radiusIn, 0 * d2r, 90 * d2r, true );
 		shape.holes.push( holePath );
 
-//		var geometry = shape.extrude( { amount: thickness, bevelEnabled: false} );
-		geometry = new THREE.ExtrudeGeometry( shape, { amount: thickness, bevelEnabled: false } );
+		var geometry = shape.extrude( { amount: thickness, bevelEnabled: false} );
 		geometry.applyMatrix( new THREE.Matrix4().makeRotationX( -16 * d2r ) );
 
 		var mesh = new THREE.Mesh( geometry, material );
