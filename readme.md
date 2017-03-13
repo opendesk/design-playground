@@ -2,7 +2,7 @@
 
 [Opendesk]( https://www.opendesk.cc/ ) is a global platform for local making. You may use the to download, make and buy work space furniture.
 
-OpenDesk has a global network of makers and a collection of furniture by a range of international designers. 
+OpenDesk has a global network of makers and a collection of furniture by a range of international designers.
 Because OpenDesk furniture is designed for digital fabrication, you may download the digital file and make locally - on demand - anywhere in the world.
 ***
 
@@ -12,15 +12,15 @@ OpenDesk Design Playground
 <input type=button value='View file as source code on GitHub' onclick=window.location.href='https://github.com/opendesk/design-playground/tree/gh-pages'; />
 ## Concept
 
-### Mission  
+### Mission
 <!-- a statement of a rationale, applicable now as well as in the future -->
 
 * To enable OpenDesk projects to be viewed, edited and created using a variety of [free, open source software]( https://en.wikipedia.org/wiki/Free_and_open-source_software ) as well as innovative proprietary solutions
 
-### Vision  
+### Vision
 <!--  a descriptive picture of a desired future state -->
 
-* To help create new ways of visualizing, collaborating and improving OpenDesk projects 
+* To help create new ways of visualizing, collaborating and improving OpenDesk projects
 * To leave behind the notion that you need 2D plans on paper in order to build things
 
 ## App Projects
@@ -35,23 +35,23 @@ Scripts that attempt to recreate the OpenDesk projects by creating 3D models on-
 	* Particularly with the bracket
 	* Add adjust height of back slider
 	* Needs a code cleanup
-* Future releases to include 
+* Future releases to include
 	* Add lights and select material
 	* Add render scenes
 	* Version with two arms instead of one back?
 * [Silly Rendering: Slim Chair as a Lorenz Attractor]( http://opendesk.github.io/design-playground/opendesk-slim-chair/opendesk-slim-chair-lorenz-attractor-r1.html )
 
 
-### [Half Sheet Table Demo]( http://opendesk.github.io/design-playground/opendesk-half-sheet-table/latest/ ) 
+### [Half Sheet Table Demo]( http://opendesk.github.io/design-playground/opendesk-half-sheet-table/latest/ )
 [Read Me]( http://opendesk.github.io/design-playground/opendesk-half-sheet-table/ )
 
-* View highly parameterized complex geometry 
+* View highly parameterized complex geometry
 
 ### [Rotational Stools Demo]( http://opendesk.github.io/design-playground/opendesk-rotational-stools/latest/ )
 [Read Me]( http://opendesk.github.io/design-playground/opendesk-rotational-stools/ )
 
 * View fully parameterized with assemble and disassemble, simple geometry
-* Exploded view - has issues  
+* Exploded view - has issues
 * [Original design]( https://www.opendesk.cc/atfab/rotational-stools ) by [AtFAB]( http://atfab.co/ )
 
 ### Roadmap
@@ -81,7 +81,7 @@ Scripts that read 2D DXF files downloaded from [OpenDesk]( http://opendesk.cc ) 
 * Does not yet show pockets or alignment holes
 * Minor parts are not positioned at all
 * Rotation of some parts is incorrect
-* R1 is is a reverse-engineered best guess as to the positions of the various parts in the design. Bug reports will be much appreciated.   
+* R1 is is a reverse-engineered best guess as to the positions of the various parts in the design. Bug reports will be much appreciated.
 
 
 ### [OpenDesk 5 to 30 Minute Chair DXF]( http://opendesk.github.io/design-playground/opendesk-5-to-30-minute-chair/latest/ )
@@ -89,21 +89,21 @@ Scripts that read 2D DXF files downloaded from [OpenDesk]( http://opendesk.cc ) 
 * Assembled components positioned by algorithm ~ except for angled components
 * [Original design]( https://www.opendesk.cc/atfab/5-to-30-minute-chair ) by [AtFAB]( http://atfab.co/ )
 
-### [OpenDesk One to Several Table DXF]( http://opendesk.github.io/design-playground/opendesk-one-to-several-table/latest/ ) 
+### [OpenDesk One to Several Table DXF]( http://opendesk.github.io/design-playground/opendesk-one-to-several-table/latest/ )
 
 * Assembled components positioned by algorithm
 * Probably the most finished demo as of this writing
 * [Designed]( https://www.opendesk.cc/atfab/one-to-several-table ) by [AtFAB]( http://atfab.co/ )
 
-### [OpenDesk Rotational Table DXF]( http://opendesk.github.io/design-playground/opendesk-rotational-table/latest/ ) 
+### [OpenDesk Rotational Table DXF]( http://opendesk.github.io/design-playground/opendesk-rotational-table/latest/ )
 
 * Assembled components positioned, gasp!, by eye
 * [Designed]( https://www.opendesk.cc/atfab/rotational-table ) by [AtFAB]( http://atfab.co/ )
 
-### [Display atFab DXF files Demo]( http://opendesk.github.io/design-playground/display-atfab-dxf/latest/ )  
+### [Display atFab DXF files Demo]( http://opendesk.github.io/design-playground/display-atfab-dxf/latest/ )
 [Read Me]( http://opendesk.github.io/design-playground/display-atfab-dxf/ )
 
-* View several [AtFAB]( https://www.opendesk.cc/atfab ) DXF files in 3D  
+* View several [AtFAB]( https://www.opendesk.cc/atfab ) DXF files in 3D
 * Latest update: 2015-06-27
 * The first script in this series
 
@@ -132,12 +132,12 @@ By communicating directly with the GPU in your computer, WebGL apps are very fas
 	* Rotate by dragging with left mouse button down or by pressing one finger
 	* Zoom by using mouse scroll wheel or by pinching two fingers
 	* Pan by dragging with right mouse button down or by pressing two fingers
-* Free, open source software 
-	* With source code and live demos viewable in your browser 
-	* All available on GitHub 
+* Free, open source software
+	* With source code and live demos viewable in your browser
+	* All available on GitHub
 
 It is hope that in the future apps based on other technologies such as [OnShape]( https://www.onshape.com/ ) or [Grasshopper on Rhino]( http://www.grasshopper3d.com/ ) and others are added to this collection of tools.
- 
+
 ## Links of Interest
 
 * http://www.flexiblestream.org/
@@ -175,6 +175,10 @@ In no event shall the authors or copyright holders be liable for any claim, dama
 
 ## Change Log
 
+2017-03-12
+
+* Extrude fixes
+
 2015-07-04 ~ Theo
 
 * Update Read Me
@@ -192,13 +196,13 @@ In no event shall the authors or copyright holders be liable for any claim, dama
 * Add DXF files
 * Update read me files
 
-OpenDesk designers each seem to have their own favorite way of creating DXF files. 
+OpenDesk designers each seem to have their own favorite way of creating DXF files.
 Designers use their own layer naming conventions, their own scale units and even varying DXF revisions.
-Thus a different DXF reader will have to be built for each designer. 
+Thus a different DXF reader will have to be built for each designer.
 I have started with AtFAB because they have a simple format.
 The only issue with their method is that there is no indication that a polyline is a hole inside another polyline,
 so I am having to identify these manually.
- 
+
 2015-06-24 ~ Theo
 
 * Move files over from my repo to OpenDesk repos
