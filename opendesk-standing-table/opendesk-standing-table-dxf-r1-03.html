@@ -252,11 +252,7 @@
 
 			}
 
-//			geometry = shape.extrude( { amount: thickness, bevelEnabled: false} );
-
-			geometry = new THREE.ExtrudeGeometry( shape, { amount: thickness, bevelEnabled: false } );
-
-
+			geometry = shape.extrude( { amount: thickness, bevelEnabled: false} );
 			geometry.computeBoundingBox();
 			material = new THREE.MeshNormalMaterial();
 			mesh = new THREE.Mesh( geometry, material );
@@ -303,15 +299,7 @@
 
 			standingDesk.add( mesh );
 
-//			edges = new THREE.EdgesHelper( mesh, 0x333333 );
-//			standingDesk.add( edges );
-
-			var edgesGeometry, edgesMaterial, edges,
-
-			edgesGeometry = new THREE.EdgesGeometry( geometry ); // or WireframeGeometry
-			edgesMaterial = new THREE.LineBasicMaterial( { color: 0x000000 } );
-			edges = new THREE.LineSegments( edgesGeometry, edgesMaterial );
-			edges.visible = false;
+			edges = new THREE.EdgesHelper( mesh, 0x333333 );
 			standingDesk.add( edges );
 
 			msg2.innerHTML += '<small>Component ' + itemCount + '<br>' +

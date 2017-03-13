@@ -218,7 +218,7 @@
 
 			for ( var j = 0; j < holes.length; j++ ) {
 
-				secondBB = new THREE.Box3().setFromPoints( holes[ j ].vertices );
+				secondBB = new THREE.Box3().setFromPoints( holes[ j ].vertices ); 
 
 				if ( firstBB.containsBox( secondBB ) === true ) {
 
@@ -240,12 +240,7 @@
 
 			}
 
-//			geometry = shape.extrude( { amount: thickness, bevelEnabled: false} );
-			geometry = new THREE.ExtrudeGeometry( shape, { amount: thickness, bevelEnabled: false } );
-//        material = new THREE.MeshNormalMaterial();
-//        mesh = new THREE.Mesh( geometry, material ) ;
-
-
+			geometry = shape.extrude( { amount: thickness, bevelEnabled: false} );
 			geometry.computeBoundingBox();
 
 			mesh = new THREE.Mesh( geometry, material );
@@ -256,15 +251,7 @@
 
 			rotationalTable.add( mesh );
 
-//			edges = new THREE.EdgesHelper( mesh, 0x333333 );
-//			rotationalTable.add( edges );
-
-//			var edgesGeometry, edgesMaterial, edges,
-
-			edgesGeometry = new THREE.EdgesGeometry( geometry ); // or WireframeGeometry
-			edgesMaterial = new THREE.LineBasicMaterial( { color: 0x000000 } );
-			edges = new THREE.LineSegments( edgesGeometry, edgesMaterial );
-			edges.visible = false; // until we figure things out better
+			edges = new THREE.EdgesHelper( mesh, 0x333333 );
 			rotationalTable.add( edges );
 
 			msg2.innerHTML += 'Component ' + id + '<br>' +
@@ -322,7 +309,6 @@
 		legNarrow2.userData.startPosition = legNarrow1.position.clone();
 		legNarrow2.userData.endPosition = v( 6.5, 75.5, 7.5 );
 
-
 		foot1 = rotationalTable.children[ 14 ];
 		foot1.userData.startRotation = foot1.rotation.clone();
 		foot1.userData.endRotation = v(  pi / 2, 0, 0 );
@@ -354,9 +340,9 @@
 	}
 
 	function onDocumentTouchStart( event ) {
-
+		
 		event.preventDefault();
-
+		
 		event.clientX = event.touches[0].clientX;
 		event.clientY = event.touches[0].clientY;
 		onDocumentMouseDown( event );
@@ -541,7 +527,7 @@
 			data =  reader.result;
 			msg2.innerHTML = data;
 
-			msg1.innerHTML = that + '<br>name: ' + that.files[0].name + ' size: ' + that.files[0].size +
+			msg1.innerHTML = that + '<br>name: ' + that.files[0].name + ' size: ' + that.files[0].size + 
 			' type: ' + that.files[0].type + ' modified: ' + that.files[0].lastModifiedDate;
 
 			readDXF( data );
@@ -563,10 +549,10 @@
 
 	function getDXF() {
 
-		if ( xmlHttp.readyState !== 4  ) {
+		if ( xmlHttp.readyState !== 4  ) { 
 
 			msg1.innerHTML += '.';
-			return;
+			return; 
 
 		}
 
