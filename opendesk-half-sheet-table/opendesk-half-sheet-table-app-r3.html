@@ -12,9 +12,9 @@
 <script src=http://mrdoob.github.io/three.js/examples/js/libs/stats.min.js ></script>
 -->
 
-<script src=http://rawgit.com/mrdoob/three.js/r71/build/three.min.js ></script>  
-<script src=http://rawgit.com/mrdoob/three.js/r71/examples/js/controls/OrbitControls.js ></script>
-<script src=http://rawgit.com/mrdoob/three.js/r71/examples/js/libs/stats.min.js ></script>  
+<script src=https://rawgit.com/mrdoob/three.js/r71/build/three.min.js ></script>
+<script src=https://rawgit.com/mrdoob/three.js/r71/examples/js/controls/OrbitControls.js ></script>
+<script src=https://rawgit.com/mrdoob/three.js/r71/examples/js/libs/stats.min.js ></script>
 <script>
 
 	var sides = 3;
@@ -183,7 +183,7 @@
 		path = new THREE.Path();
 
 		outline = li3( offX + radius - s, 0, offZ, pt.x - s, pt.y, offZ,
-			pt.x - s, height - rail, offZ,  offX, height - rail, offZ,  
+			pt.x - s, height - rail, offZ,  offX, height - rail, offZ,
 			offX, height, offZ,  offX + radius + s, height, offZ,
 			offX + radius + s, height - s, offZ,  offX + radius, height - s, offZ,
 			ptInt.x + s, ptInt.y, offZ,  offX + radius + s, 0, offZ,
@@ -195,7 +195,7 @@
 
 
 		var points = [ v2( offX + radius - s ), v2( pt.x - s, pt.y ),
-			v2( pt.x - s, height - rail ), v2( offX, height - rail ),  
+			v2( pt.x - s, height - rail ), v2( offX, height - rail ),
 			v2( offX, height),   v2( offX + radius + s, height ),
 			v2( offX + radius + s, height - s),  v2( offX + radius, height - s ),
 			v2( ptInt.x + s, ptInt.y ),  v2( offX + radius + s, 0 ),
@@ -624,7 +624,7 @@ console.log( 'not' );
 			line2Start = line2.geometry.vertices[ 0 ];
 			line2End = line2.geometry.vertices[ 1 ];
 
-			denominator = ( (line2End.y - line2Start.y ) * ( line1End.x - line1Start.x ) ) 
+			denominator = ( (line2End.y - line2Start.y ) * ( line1End.x - line1Start.x ) )
 				- ( ( line2End.x - line2Start.x ) * ( line1End.y - line1Start.y ) );
 
 //console.log( denominator  );
